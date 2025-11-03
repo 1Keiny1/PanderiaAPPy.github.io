@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil - La Desesperanza</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      image-rendering: auto;
+      background-image: url('img/fondo.jpeg');
+      background-position: center; 
+    }
+    .profile-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .profile-img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #343a40;
+    }
+    .btn-profile {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid fw-bold">
+      <a class="navbar-brand" href="#">La Desesperanza</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="inventario.html">Conócenos</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenedor perfil -->
+  <div class="profile-container d-flex align-items-center">
+    <!-- Foto de perfil -->
+    <div class="me-5 text-center">
+      <img id="profileImage" src="" alt="Foto de perfil" class="profile-img mb-3">
+    </div>
+
+    <!-- Información y botones -->
+    <div class="flex-grow-1">
+      <h3 id="profileName">Nombre</h3>
+      <p><i class="bi bi-envelope-fill"></i> <span id="profileEmail">correo@ejemplo.com</span></p>
+      <p><i class="bi bi-person-badge-fill"></i> <span id="profileRole">Rol</span></p>
+
+      <button id="editProfile" class="btn btn-primary btn-profile" data-bs-toggle="modal" data-bs-target="#editModal">
+        <i class="bi bi-pencil-fill"></i> Editar perfil
+      </button>
+      <button id="logout" class="btn btn-danger"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- Modal Editar Perfil -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="editProfileForm" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Editar Perfil</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-center mb-3">
+            <img id="fotoPerfil" src="" class="img-fluid rounded-circle profile-img" alt="Foto de perfil">
+            <input type="file" id="uploadPhoto" class="form-control mt-2">
+          </div>
+
+          <div class="mb-3">
+            <label for="editName" class="form-label">Nombre:</label>
+            <input type="text" id="editName" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="editPassword" class="form-label">Nueva Contraseña:</label>
+            <input type="password" id="editPassword" class="form-control" placeholder="Dejar vacío para no cambiar">
+          </div>
+
+          <div class="mb-3">
+            <label for="editPasswordConfirm" class="form-label">Confirmar Contraseña:</label>
+            <input type="password" id="editPasswordConfirm" class="form-control" placeholder="Dejar vacío para no cambiar">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Guardar cambios</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    async function loadProfile() {
+      try {
+        const res = await fetch("/perfil");
+        if (!res.ok) throw new Error("No autorizado");
+        const user = await res.json();
+
+        // Foto de perfil (usa endpoint que devuelve imagen o default)
+        const fotoUrl = "/perfil/foto?ts=" + new Date().getTime();
+        document.getElementById("profileImage").src = fotoUrl;
+        document.getElementById("fotoPerfil").src = fotoUrl;
+
+        // Info
+        document.getElementById("profileName").textContent = user.nombre;
+        document.getElementById("profileEmail").textContent = user.correo;
+        const roles = {1: "Administrador", 2: "Cajero", 3: "Cliente"};
+        document.getElementById("profileRole").textContent = roles[user.id_rol] || "Sin rol";
+
+        // Modal
+        document.getElementById("editName").value = user.nombre;
+
+      } catch (err) {
+        console.error(err);
+        alert("Debes iniciar sesión");
+        window.location.href = "index.html";
+      }
+    }
+
+    // Cerrar sesión
+    document.getElementById("logout").addEventListener("click", async () => {
+      try {
+        const res = await fetch("/logout", { method: "POST" });
+        const data = await res.json();
+        alert(data.mensaje);
+        window.location.href = "index.html";
+      } catch (err) {
+        console.error(err);
+        alert("Error al cerrar sesión");
+      }
+    });
+
+    // Editar perfil
+    document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nombre = document.getElementById("editName").value.trim();
+      const pass = document.getElementById("editPassword").value;
+      const confirm = document.getElementById("editPasswordConfirm").value;
+      const foto = document.getElementById("uploadPhoto").files[0];
+
+      if (pass && pass !== confirm) {
+        alert("Las contraseñas no coinciden");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("nombre", nombre);
+      if (pass) formData.append("contrasena", pass);
+      if (foto) formData.append("foto", foto);
+
+      try {
+        const res = await fetch("/editar-perfil", { method: "POST", body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.mensaje);
+          loadProfile();
+          const modalEl = bootstrap.Modal.getInstance(document.getElementById("editModal"));
+          modalEl.hide();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error al actualizar perfil");
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

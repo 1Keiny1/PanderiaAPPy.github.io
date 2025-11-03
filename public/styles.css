@@ -1,0 +1,129 @@
+/* Paleta Día de Muertos */
+:root {
+  --color-primario: #471754;
+  --color-secundario: #991D5D;
+  --color-acento: #ff6f31;
+  --color-fondo: #f5f5f5;
+  --color-texto: #2e2e2e;
+  --color-blanco: #fff;
+  --color-dorado: #ffc300; 
+}
+
+/* Body y tipografía */
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar {
+  background: linear-gradient(160deg, var(--color-primario), var(--color-secundario));
+}
+
+.nav-link, .nav-link.active, .navbar-brand {
+  color: var(--color-blanco);
+}
+
+.navbar-collapse {
+  overflow: visible; 
+}
+
+/* Footer */
+footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  margin-top: 50px;
+  background: linear-gradient(160deg, var(--color-secundario), var(--color-acento));
+  color: var(--color-blanco);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* Formularios */
+.auth-container {
+  max-width: 400px;
+  margin: 60px auto;
+  background: var(--color-blanco);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
+}
+
+.toggle-link {
+  color: var(--color-primario);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Botones */
+.btn-primary {
+  background-color: var(--color-primario);
+  color: var(--color-blanco);
+  border: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #3a144f;
+  color: var(--color-blanco);
+}
+
+.btn-success {
+  background-color: var(--color-acento);
+  color: var(--color-blanco);
+  border: none;
+  font-weight: bold;
+}
+
+.btn-success:hover {
+  background-color: #e55e27;
+  color: var(--color-blanco);
+}
+
+/* Tablas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+thead.thead-muertos {
+  background-color: var(--color-secundario);
+  color: var(--color-blanco);
+}
+
+/* Fondos decorativos */
+.bg-festivo {
+  background-color: var(--color-dorado);
+  color: var(--color-texto);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Encabezados */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-primario);
+  margin: 0.5rem 0;
+}
+
+.badge-temporada {
+  background: linear-gradient(45deg, #FFC300, #FF5733); /* amarillo-anaranjado */
+  color: white;
+}
+
+.card-precio {
+  color: #800080; /* morado */
+  font-weight: bold;
+  font-size: 1.1rem;
+}

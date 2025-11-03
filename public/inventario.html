@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="estilo.css">
+    <title>La Desesperanza</title>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="index.html">La Desesperanza</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="#">Conocenos</a>
+          </li>
+        </ul>
+        <form class="d-flex" role="search">
+            <input id="searchInput" class="form-control me-2" type="search" placeholder="Buscar" aria-label="Search"/>
+            <button id="searchBtn" class="btn btn-light" type="submit"><i style="color: black; font-size: 18px;" class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+        <span class="navbar-text">
+          <div class="dropdown">
+              <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-user"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" id="logout">Cerrar Sesión</a></li>
+              </ul>
+          </div>
+        </span>
+      </div>
+    </div>
+  </nav>
+
+    <section>
+      <main class="container">
+
+          <div class="mb-3">
+          <label for="temporadaActiva" class="form-label fw-semibold" >Temporada a mostrar</label>
+          <select id="temporadaActiva" class="form-select">
+            <option value="0">Ninguna</option>
+            <option value="2">Día de Muertos / Halloween</option>
+            <option value="3">Navidad</option>
+            <option value="4">Día de Reyes</option>
+            <option value="5">14 de Febrero</option>
+            <option value="6">Independencia de México</option>
+          </select>
+          <button id="btnActivarTemporada" class="btn btn-primary mt-2">Activar temporada</button>
+          <button id="btnDesactivarTemporada" class="btn btn-danger mt-2">Desactivar temporada</button>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2 class="mb-3">Inventario de Panes</h2>
+            </div>
+            <div class="col-md-4 text-end">
+              <!-- Boton del modal añadir pan -->
+              <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalProducto">
+                Añadir Pan
+              </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle" id="tablaProductos">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No. Pan</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Temporada</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Productos aquí -->
+                </tbody>
+            </table>
+        </div>
+
+    <!-- Modal de Creación-->
+    <div class="modal fade" id="modalProducto" tabindex="-1" aria-labelledby="modalProductoLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="formProducto" enctype="multipart/form-data">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="modalProductoLabel">Añadir/ Editar Pan</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              <input type="hidden" id="id_pan" name="id_pan">
+
+              <div class="mb-3">
+                <label for="imagen" class="form-label fw-semibold">Imagen</label>
+                <input type="file" class="form-control rounded-pill" id="imagen" name="imagen" accept="image/*">
+                <div class="form-text">Si no subes una imagen al editar, se conservará la anterior.</div>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-12 col-md-6 mb-3">
+                  <label for="nombre" class="form-label fw-semibold">Nombre</label>
+                  <input type="text" class="form-control rounded-pill" id="nombre" name="nombre" placeholder="Nombre" required>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                  <label for="precio" class="form-label fw-semibold">Precio</label>
+                  <input type="number" class="form-control rounded-pill" id="precio" name="precio" placeholder="Precio" min="0.01" step="0.01" required>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="cantidad" class="form-label fw-semibold">Cantidad</label>
+                <input type="number" class="form-control rounded-pill" id="cantidad" name="cantidad" min="0" placeholder="Cantidad" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="temporada" class="form-label fw-semibold">Temporada:</label><br>
+                <select name="temporada" id="temporada" class="form-select">
+                  <option value="1">Todo el año</option>
+                  <option value="2">Día de Muertos / Halloween</option>
+                  <option value="3">Navidad</option>
+                  <option value="4">Día de Reyes</option>
+                  <option value="5">14 de Febrero</option>
+                  <option value="6">Independencia de México</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="descripcion" class="form-label fw-semibold">Descripción</label>
+                <textarea class="form-control rounded-4" id="descripcion" name="descripcion" rows="2" placeholder="Descripción"></textarea>
+              </div>
+                <div id="mensajeError" class="alert alert-danger d-none"></div>
+            </div>
+
+            <!-- modal footer: cambia onclick por submit -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <!-- DEBE ser submit para que el form dispare el listener que registraste en DOMContentLoaded -->
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    </section>
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <small>&copy; 2025 Panadería La Desesperanza</small>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/funciones.js"></script>
+
+    <script>
+    // Cerrar sesión
+      document.getElementById("logout").addEventListener("click", async () => {
+        try {
+          const res = await fetch("http://localhost:10000/logout", { method: "POST" });
+          const data = await res.json();
+          alert(data.mensaje);
+          window.location.href = "index.html";
+        } catch (err) {
+          console.error(err);
+          alert("Error al cerrar sesión");
+        }
+      });
+    </script>
+</body>
+</html>

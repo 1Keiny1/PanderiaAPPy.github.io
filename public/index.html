@@ -1,29 +1,301 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="app.js"></script>
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Desesperanza</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
+
+<style>
+  /* Ajuste de altura del carrusel */
+  #carouselPanaderia .carousel-item img {
+    height: 350px;
+    object-fit: cover;
+  }
+
+  #carouselPanaderia .carousel-caption {
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 0;
+  }
+</style>
+
 <body>
-    <h1><a href="/obtenerUsuario">Obtener Usuarios</a></h1>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">La Desesperanza</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0">
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="conocenos.html">Conócenos</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-    <h2>Añadir Usuario</h2>
-    <form action="/agregarUsuario" method="post">
-        <input type="number" name="id" placeholder="ID de Usuario" required>
-        <br><br>
-        <input type="text" name="nombre" placeholder="Nombre de Usuario" required>
-        <br><br>
-        <input type="submit" value="Agregar Usuario">
+  <!-- Carrusel principal -->
+<div id="carouselPanaderia" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-inner">
+
+    <div class="carousel-item active">
+      <img src="img/Carrucel1.jpg" class="d-block w-100" alt="Pan tradicional">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Pan dulce tradicional</h5>
+        <p>El sabor clásico de cada mañana.</p>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <img src="img/Carrucel2.jpg" class="d-block w-100" alt="Pan de temporada">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Pan de temporada</h5>
+        <p>Edición especial con ingredientes frescos del mes.</p>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <img src="img/Carrucel3.jpg" class="d-block w-100" alt="Repostería artesanal">
+      <div class="carousel-caption d-none d-md-block">
+        <h5>Repostería artesanal</h5>
+        <p>Hecho con amor y tradición familiar.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Controles -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselPanaderia" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselPanaderia" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+
+  <!-- Indicadores -->
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselPanaderia" data-bs-slide-to="0" class="active"></button>
+    <button type="button" data-bs-target="#carouselPanaderia" data-bs-slide-to="1"></button>
+    <button type="button" data-bs-target="#carouselPanaderia" data-bs-slide-to="2"></button>
+  </div>
+</div>
+
+  <!-- Contenedor de alertas -->
+  <div class="container mt-3" id="alertContainer"></div>
+
+  <!-- FORMULARIO LOGIN -->
+  <div class="auth-container" id="loginForm">
+    <h2 class="text-center mb-4">Iniciar Sesión</h2>
+    <form id="login">
+      <div class="mb-3">
+        <label for="loginEmail" class="form-label">Correo:</label>
+        <input type="email" id="loginEmail" name="correo" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="loginContrasena" class="form-label">Contraseña:</label>
+        <input type="password" id="loginContrasena" name="contrasena" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+
+      <div class="text-center mt-3">
+        ¿No tienes cuenta? <span id="showRegister" class="toggle-link">Regístrate</span>
+      </div>
     </form>
+  </div>
 
-    <h2>Eliminar Usuario</h2>
-    <form action="/borrarUsuario" method="post">
-        <input type="number" name="id" placeholder="ID de Usuario" required>
-        <br><br>
-        <input type="submit" value="Borrar Usuario">
+  <!-- FORMULARIO REGISTRO -->
+  <div class="auth-container" id="registerForm" style="display: none;">
+    <h2 class="text-center mb-4">Registrarse</h2>
+    <form id="registrer">
+      <div class="mb-3">
+        <label for="registerNombre" class="form-label">Nombre:</label>
+        <input type="text" id="registerNombre" name="nombre" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="registerEmail" class="form-label">Correo:</label>
+        <input type="email" id="registerEmail" name="correo" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="registerRol" class="form-label">Rol:</label>
+        <select id="registerRol" name="rol" class="form-select" required>
+          <option value="0">Sin rol</option>
+          <option value="1">Administrador</option>
+          <option value="3">Cliente</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="registerPassword" class="form-label">Contraseña:</label>
+        <input type="password" id="registerPassword" name="contrasena" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="registerPasswordConfirm" class="form-label">Confirmar contraseña:</label>
+        <input type="password" id="registerPasswordConfirm" name="confirmar_contrasena" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+
+      <div class="text-center mt-3">
+        ¿Ya tienes cuenta? <span id="showLogin" class="toggle-link">Inicia sesión</span>
+      </div>
     </form>
+  </div>
 
+  <!-- FOOTER -->
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <small>&copy; 2025 Panadería La Desesperanza</small>
+  </footer>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Elementos
+  const loginFormContainer = document.getElementById("loginForm");
+  const registerFormContainer = document.getElementById("registerForm");
+  const showRegister = document.getElementById("showRegister");
+  const showLogin = document.getElementById("showLogin");
+  const alertContainer = document.getElementById("alertContainer");
+
+  // Alternar entre formularios
+  showRegister.addEventListener("click", () => {
+    loginFormContainer.style.display = "none";
+    registerFormContainer.style.display = "block";
+    clearAlerts();
+  });
+
+  showLogin.addEventListener("click", () => {
+    registerFormContainer.style.display = "none";
+    loginFormContainer.style.display = "block";
+    clearAlerts();
+  });
+
+  // Mostrar alertas Bootstrap dinámicas
+  function showAlert(tipo, mensaje) {
+    clearAlerts();
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.role = "alert";
+    alertDiv.innerHTML = `
+      ${mensaje}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+  }
+
+  function clearAlerts() {
+    alertContainer.innerHTML = "";
+  }
+
+  // Registro
+  document.getElementById("registrer").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById("registerNombre").value.trim();
+    const correo = document.getElementById("registerEmail").value.trim();
+    const rol = document.getElementById("registerRol").value;
+    const pass = document.getElementById("registerPassword").value;
+    const confirm = document.getElementById("registerPasswordConfirm").value;
+
+    // Validaciones
+    if (!nombre || !correo || !pass || !confirm) {
+      showAlert("warning", "Todos los campos son obligatorios.");
+      return;
+    }
+    if (rol === "0") {
+      showAlert("danger", "Debes seleccionar un rol válido.");
+      return;
+    }
+    if (pass.length < 8 || pass.length > 20) {
+      showAlert("warning", "La contraseña debe tener entre 8 y 20 caracteres.");
+      return;
+    }
+    if (pass !== confirm) {
+      showAlert("danger", "Las contraseñas no coinciden.");
+      return;
+    }
+
+    // Enviar datos al backend
+    try {
+      const res = await fetch("http://localhost:10000/registrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, correo, contrasena: pass, rol })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        showAlert("danger", data.error);
+      } else {
+        showAlert("success", data.mensaje);
+        e.target.reset();
+        loginFormContainer.style.display = "block";
+        registerFormContainer.style.display = "none";
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("danger", "Error al conectar con el servidor.");
+    }
+  });
+
+  // Login
+  const loginForm = document.getElementById("login");
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(loginForm);
+    const data = Object.fromEntries(formData.entries());
+
+    if (!data.correo || !data.contrasena) {
+      showAlert("warning", "Por favor, llena todos los campos.");
+      return;
+    }
+
+    if (data.contrasena.length < 8) {
+      showAlert("warning", "Contraseña demasiado corta (mínimo 8 caracteres).");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:10000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+
+      if (res.ok) {
+        // Redirigir según el rol
+        if (json.rol == 1) { // admin
+          window.location.href = "inventario.html";
+        } 
+        if (json.rol == 3) { // cliente
+          window.location.href = "compras.html";
+        }
+      } else {
+        showAlert("danger", json.error);
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("danger", "Error al conectar con el servidor.");
+    }
+  });
+</script>
 </body>
 </html>
