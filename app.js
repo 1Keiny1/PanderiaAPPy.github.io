@@ -588,6 +588,7 @@ app.post("/comprar", requireAuth, requireRole(3), async (req, res) => {
   }
 });
 
-app.listen(10000, () => {
-    console.log("Servidor escuchando en el puerto 10000");
+const port = process.env.PORT || 10000;
+app.listen(port, () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
 });
