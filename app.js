@@ -25,13 +25,22 @@ const pool = mysql.createPool({
 
 const con = pool.promise();
 
-con.query('SELECT 1')
-  .then(() => console.log("Conectado a MySQL"))
-  .catch(err => {
-    console.error("Error conectando a MySQL:", err);
-    process.exit(1);
-  });
+async function connectWithRetry(retries = 5, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await con.query('SELECT 1');
+      console.log("Conectado a MySQL");
+      return;
+    } catch (err) {
+      console.log(`Intento ${i+1} fallido, reintentando en ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  console.error("No se pudo conectar a MySQL después de varios intentos.");
+  process.exit(1);
+}
 
+connectWithRetry();
 
 // Remover Tags
 function removeTags(html) {
