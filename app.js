@@ -98,7 +98,7 @@ function requireAuth(req, res, next) {
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 
-const sessionStore = new MySQLStore({}, con);
+const sessionStore = new MySQLStore({}, pool);
 
 app.use(session({
   key: "sid",
