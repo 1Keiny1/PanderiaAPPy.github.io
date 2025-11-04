@@ -132,6 +132,9 @@ function configurarCompra() {
     procederCompraBtn.addEventListener("click", async () => {
       if (!carrito.length) return alert("Tu carrito está vacío.");
 
+      console.log("=== INICIANDO COMPRA ===");
+      console.log("Carrito a enviar:", carrito);
+
       try {
         const res = await fetch("/comprar", {
           method: "POST",
@@ -140,16 +143,33 @@ function configurarCompra() {
           credentials: "include"
         });
 
-        const data = await res.json();
-        if (!res.ok) return alert(data.mensaje || data.error || "Error al procesar la compra.");
+        console.log("Status de respuesta:", res.status, res.statusText);
+
+        // Intentar leer la respuesta como JSON
+        let data;
+        try {
+          data = await res.json();
+          console.log("Datos recibidos del servidor:", data);
+        } catch (jsonErr) {
+          console.error("Error al parsear JSON:", jsonErr);
+          return alert("Error: El servidor no devolvió una respuesta válida.");
+        }
+
+        if (!res.ok) {
+          console.error("Error del servidor:", data);
+          // Mostrar mensaje más detallado
+          const errorMsg = data.mensaje || data.error || `Error ${res.status}: ${res.statusText}`;
+          return alert(errorMsg);
+        }
+
         alert(data.mensaje || "Compra realizada con éxito 🎉");
 
         carrito = [];
         guardarCarrito();
         renderCarrito();
       } catch (err) {
-        console.error(err);
-        alert("Error al procesar la compra.");
+        console.error("Error completo:", err);
+        alert(`Error al procesar la compra: ${err.message}`);
       }
     });
   }
@@ -193,6 +213,7 @@ async function cargarProductosCliente() {
     console.error("Error al cargar productos:", err);
   }
 }
+
 // --- RENDER DE PRODUCTOS ---
 function mostrarProductos(lista, contenedor) {
   if (!contenedor) return;
