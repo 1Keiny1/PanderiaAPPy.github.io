@@ -193,7 +193,6 @@ async function cargarProductosCliente() {
     console.error("Error al cargar productos:", err);
   }
 }
-
 // --- RENDER DE PRODUCTOS ---
 function mostrarProductos(lista, contenedor) {
   if (!contenedor) return;
