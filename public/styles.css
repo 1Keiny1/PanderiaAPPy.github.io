@@ -1,12 +1,12 @@
-/* Paleta Día de Muertos */
+/* Paleta Navidad */
 :root {
-  --color-primario: #471754;
-  --color-secundario: #991D5D;
-  --color-acento: #ff6f31;
-  --color-fondo: #f5f5f5;
-  --color-texto: #2e2e2e;
-  --color-blanco: #fff;
-  --color-dorado: #ffc300; 
+  --color-primario: #B71C1C;
+  --color-secundario: #1B5E20;
+  --color-acento: #FFD700;
+  --color-fondo: #FDF9F3;
+  --color-texto: #2E2E2E;
+  --color-blanco: #FFFFFF;
+  --color-dorado: #FFD700;
 }
 
 /* Body y tipografía */
