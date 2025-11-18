@@ -1,12 +1,12 @@
 /* Paleta Navidad */
 :root {
-  --color-primario: #B71C1C;
-  --color-secundario: #1B5E20;
-  --color-acento: #FFD700;
-  --color-fondo: #FDF9F3;
+  --color-primario: #8C1F28;
+  --color-secundario: #1F4E3D;
+  --color-acento: #E6B33C;
+  --color-fondo: #F7F3EF;
   --color-texto: #2E2E2E;
   --color-blanco: #FFFFFF;
-  --color-dorado: #FFD700;
+  --color-dorado: #E6B33C;        
 }
 
 /* Body y tipografía */
