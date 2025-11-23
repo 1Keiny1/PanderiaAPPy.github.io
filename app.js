@@ -657,7 +657,7 @@ app.post("/comprar", (req, res, next) => {
   }
 });
 
-// Historial de compras basado en ventas + detalle_ventas + pan
+// Historial de compras
 app.get("/historial-compras", requireAuth, (req, res) => {
     const userId = req.session.userId;
 
@@ -672,11 +672,11 @@ app.get("/historial-compras", requireAuth, (req, res) => {
             detalle_ventas.precio,
             detalle_ventas.subtotal,
             
-            pan.nombre AS nombre_pan
-            
+            producto.nombre AS nombre_pan
+
         FROM ventas
         INNER JOIN detalle_ventas ON ventas.id_venta = detalle_ventas.id_venta
-        INNER JOIN pan ON detalle_ventas.id_pan = pan.id_pan
+        INNER JOIN producto ON detalle_ventas.id_pan = producto.id_pan
         WHERE ventas.id_usuario = ?
         ORDER BY ventas.fecha DESC;
     `;
@@ -687,7 +687,6 @@ app.get("/historial-compras", requireAuth, (req, res) => {
             return res.status(500).json({ error: "Error del servidor." });
         }
 
-        // Agrupar los resultados por venta
         const historial = {};
 
         results.forEach(row => {
