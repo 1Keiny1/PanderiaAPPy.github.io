@@ -657,14 +657,30 @@ app.post("/comprar", (req, res, next) => {
   }
 });
 
-// Historial de compras
-app.get("/historial-compras", requireAuth, (req, res) => {
-    const userId = req.session.userId;
+function formatearFecha(fechaISO) {
+  const fecha = new Date(fechaISO);
+
+  const año = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+
+  const hora = String(fecha.getHours()).padStart(2, '0');
+  const minutos = String(fecha.getMinutes()).padStart(2, '0');
+  const segundos = String(fecha.getSeconds()).padStart(2, '0');
+
+  return `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}`;
+}
+
+// Obtener historial de compras
+app.get("/historial-compras", (req, res) => {
+    console.log("Petición recibida: GET /historial-compras");
+
+    const userId = req.user.id_usuario;
 
     const query = `
         SELECT 
             ventas.id_venta,
-            ventas.fecha,
+            DATE_FORMAT(ventas.fecha, '%Y-%m-%d %H:%i:%s') AS fecha,
             ventas.total AS total_venta,
             
             detalle_ventas.id_detalle,
@@ -681,34 +697,38 @@ app.get("/historial-compras", requireAuth, (req, res) => {
         ORDER BY ventas.fecha DESC;
     `;
 
-    pool.query(query, [userId], (error, results) => {
-        if (error) {
-            console.error("Error al obtener historial:", error);
-            return res.status(500).json({ error: "Error del servidor." });
+    pool.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error("Error al obtener historial:", err);
+            return res.status(500).json({ error: "Error al obtener historial" });
         }
 
-        const historial = {};
+        // Agrupar resultados por venta
+        const historial = [];
 
         results.forEach(row => {
-            if (!historial[row.id_venta]) {
-                historial[row.id_venta] = {
+            let venta = historial.find(v => v.id_venta === row.id_venta);
+
+            if (!venta) {
+                venta = {
                     id_venta: row.id_venta,
                     fecha: row.fecha,
                     total: row.total_venta,
                     productos: []
                 };
+                historial.push(venta);
             }
 
-            historial[row.id_venta].productos.push({
+            venta.productos.push({
                 id_detalle: row.id_detalle,
-                nombre_pan: row.nombre_pan,
                 cantidad: row.cantidad,
                 precio: row.precio,
-                subtotal: row.subtotal
+                subtotal: row.subtotal,
+                nombre: row.nombre_pan
             });
         });
 
-        res.json(Object.values(historial));
+        res.json(historial);
     });
 });
 
