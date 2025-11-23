@@ -731,27 +731,21 @@ app.get("/historial-compras", requireAuth, (req, res) => {
     });
 });
 
+
 // HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
 app.get("/admin/historial-compras", (req, res) => {
     console.log("Petición recibida: GET /admin/historial-compras");
 
-    // Requiere sesión + rol administrador (1)
-    if (!req.session || !req.session.rol || req.session.rol !== 1) {
+    if (!req.session.rol || req.session.rol !== 1) {
         return res.status(403).json({ error: "Acceso denegado" });
     }
 
-    // Aceptamos varias formas de recibir fechas (para compatibilidad con tu frontend)
-    const { fecha, desde, hasta, fechaInicio, fechaFin } = req.query;
-
-    // Normalizar: prioridad -> fecha (única) > (fechaInicio, fechaFin) > (desde, hasta)
-    let singleDate = fecha || null;
-    let startDate = fechaInicio || desde || null;
-    let endDate = fechaFin || hasta || null;
+    const { fechaInicio, fechaFin } = req.query;
 
     let sql = `
         SELECT 
             v.id_venta,
-            DATE_FORMAT(v.fecha, '%Y-%m-%d %H:%i:%s') AS fecha,
+            v.fecha,
             v.total,
             u.nombre AS usuario,
             p.nombre AS producto,
@@ -766,16 +760,11 @@ app.get("/admin/historial-compras", (req, res) => {
 
     const params = [];
 
-    if (singleDate) {
-        // Fecha única: filtrar por esa fecha exacta (DATE())
-        sql += " WHERE DATE(v.fecha) = ? ";
-        params.push(singleDate);
-    } else if (startDate && endDate) {
-        // Rango: BETWEEN start AND end
+    if (fechaInicio && fechaFin) {
         sql += " WHERE DATE(v.fecha) BETWEEN ? AND ? ";
-        params.push(startDate, endDate);
+        params.push(fechaInicio, fechaFin);
     }
-    // ORDER BY al final SIEMPRE
+
     sql += " ORDER BY v.fecha DESC";
 
     pool.query(sql, params, (err, rows) => {
@@ -783,8 +772,8 @@ app.get("/admin/historial-compras", (req, res) => {
             console.error("Error historial admin:", err);
             return res.status(500).json({ error: "Error al obtener el historial" });
         }
-        // Devolver directamente el array (tu frontend espera un array)
-        res.json(rows);
+
+        res.json({ historial: rows });
     });
 });
 
