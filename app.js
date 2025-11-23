@@ -657,7 +657,7 @@ app.post("/comprar", (req, res, next) => {
   }
 });
 
-// Historial de compras basado en ventas + detalle_venta + pan
+// Historial de compras basado en ventas + detalle_ventas + pan
 app.get("/historial-compras", requireAuth, (req, res) => {
     const userId = req.session.userId;
 
@@ -667,16 +667,16 @@ app.get("/historial-compras", requireAuth, (req, res) => {
             ventas.fecha,
             ventas.total AS total_venta,
             
-            detalle_venta.id_detalle,
-            detalle_venta.cantidad,
-            detalle_venta.precio,
-            detalle_venta.subtotal,
+            detalle_ventas.id_detalle,
+            detalle_ventas.cantidad,
+            detalle_ventas.precio,
+            detalle_ventas.subtotal,
             
             pan.nombre AS nombre_pan
             
         FROM ventas
-        INNER JOIN detalle_venta ON ventas.id_venta = detalle_venta.id_venta
-        INNER JOIN pan ON detalle_venta.id_pan = pan.id_pan
+        INNER JOIN detalle_ventas ON ventas.id_venta = detalle_ventas.id_venta
+        INNER JOIN pan ON detalle_ventas.id_pan = pan.id_pan
         WHERE ventas.id_usuario = ?
         ORDER BY ventas.fecha DESC;
     `;
