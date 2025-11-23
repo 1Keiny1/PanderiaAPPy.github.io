@@ -226,19 +226,16 @@ async function obtenerHistorialAdmin() {
     let url = "/admin/historial-compras";
     const params = new URLSearchParams();
 
-    // FILTRO 1: Fecha única
-    if (fecha && !desde && !hasta) {
+    // 🔥 Si hay fecha única, ignora todo lo demás
+    if (fecha) {
         params.append("fechaInicio", fecha);
-        params.append("fechaFin", fecha); // ← OBLIGATORIO
-    }
-
-    // FILTRO 2: Rango desde - hasta
-    if (desde && hasta) {
+        params.append("fechaFin", fecha);
+    } 
+    else if (desde && hasta) {
         params.append("fechaInicio", desde);
         params.append("fechaFin", hasta);
     }
 
-    // Nada seleccionado → sin filtros
     if (params.toString() !== "") {
         url += "?" + params.toString();
     }
@@ -246,15 +243,8 @@ async function obtenerHistorialAdmin() {
     try {
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.error || "Error al obtener historial");
-            return;
-        }
-
         mostrarTablaHistorialAdmin(data.historial || []);
     } catch (err) {
-        console.error(err);
         alert("Error en la solicitud");
     }
 }
