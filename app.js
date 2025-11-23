@@ -731,7 +731,6 @@ app.get("/historial-compras", requireAuth, (req, res) => {
     });
 });
 
-
 // HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
 app.get("/admin/historial-compras", (req, res) => {
     console.log("Petición recibida: GET /admin/historial-compras");
@@ -759,13 +758,28 @@ app.get("/admin/historial-compras", (req, res) => {
     `;
 
     const params = [];
+    const filtros = [];
 
-    if (fechaInicio && fechaFin) {
-        sql += " WHERE DATE(v.fecha) BETWEEN ? AND ? ";
-        params.push(fechaInicio, fechaFin);
+    // --- FILTROS ---
+    if (fechaInicio) {
+        filtros.push("DATE(v.fecha) >= ?");
+        params.push(fechaInicio);
+    }
+
+    if (fechaFin) {
+        filtros.push("DATE(v.fecha) <= ?");
+        params.push(fechaFin);
+    }
+
+    // Si hay filtros, agrégalos
+    if (filtros.length > 0) {
+        sql += " WHERE " + filtros.join(" AND ");
     }
 
     sql += " ORDER BY v.fecha DESC";
+
+    console.log("SQL Final:", sql);
+    console.log("Params:", params);
 
     pool.query(sql, params, (err, rows) => {
         if (err) {
