@@ -287,3 +287,55 @@ function filtrarProductos(termino) {
     });
   });
 }
+
+// Cuando se abre el modal del historial
+document.getElementById("modalHistorial").addEventListener("show.bs.modal", async () => {
+    const contenedor = document.getElementById("contenedorHistorial");
+    contenedor.innerHTML = `<p class="text-center text-muted">Cargando historial...</p>`;
+
+    try {
+        const res = await fetch("/historial-compras");
+        const historial = await res.json();
+
+        if (!Array.isArray(historial) || historial.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-muted">No tienes compras realizadas.</p>`;
+            return;
+        }
+
+        contenedor.innerHTML = "";
+
+        historial.forEach(venta => {
+            // Card por venta
+            const item = document.createElement("div");
+            item.classList.add("list-group-item");
+
+            let productosHTML = "";
+            venta.productos.forEach(p => {
+                productosHTML += `
+                    <div class="d-flex justify-content-between">
+                        <span>${p.nombre_pan} (x${p.cantidad})</span>
+                        <span>$${p.subtotal}</span>
+                    </div>
+                `;
+            });
+
+            item.innerHTML = `
+                <div class="fw-bold">Venta #${venta.id_venta}</div>
+                <div class="text-muted">${venta.fecha}</div>
+                <hr>
+                ${productosHTML}
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total:</span>
+                    <span>$${venta.total}</span>
+                </div>
+            `;
+
+            contenedor.appendChild(item);
+        });
+
+    } catch (error) {
+        contenedor.innerHTML = `<p class="text-danger text-center">Error al obtener el historial.</p>`;
+        console.error(error);
+    }
+});

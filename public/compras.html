@@ -56,7 +56,6 @@
           <i class="bi bi-cart3"></i>
           <span id="contadorCarrito"
                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-            
           </span>
         </button>
 
@@ -67,6 +66,7 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalHistorial">Historial de compras</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" id="logout">Cerrar Sesión</a></li>
           </ul>
@@ -157,6 +157,26 @@
           <i class="bi bi-credit-card"></i> Proceder a comprar
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Historial -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Historial de compras</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div id="contenedorHistorial" class="list-group">
+          <p class="text-center text-muted">Cargando historial...</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

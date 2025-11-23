@@ -657,6 +657,63 @@ app.post("/comprar", (req, res, next) => {
   }
 });
 
+// Historial de compras basado en ventas + detalle_venta + pan
+app.get("/historial-compras", requireAuth, (req, res) => {
+    const userId = req.session.userId;
+
+    const query = `
+        SELECT 
+            ventas.id_venta,
+            ventas.fecha,
+            ventas.total AS total_venta,
+            
+            detalle_venta.id_detalle,
+            detalle_venta.cantidad,
+            detalle_venta.precio,
+            detalle_venta.subtotal,
+            
+            pan.nombre AS nombre_pan
+            
+        FROM ventas
+        INNER JOIN detalle_venta ON ventas.id_venta = detalle_venta.id_venta
+        INNER JOIN pan ON detalle_venta.id_pan = pan.id_pan
+        WHERE ventas.id_usuario = ?
+        ORDER BY ventas.fecha DESC;
+    `;
+
+    pool.query(query, [userId], (error, results) => {
+        if (error) {
+            console.error("Error al obtener historial:", error);
+            return res.status(500).json({ error: "Error del servidor." });
+        }
+
+        // Agrupar los resultados por venta
+        const historial = {};
+
+        results.forEach(row => {
+            if (!historial[row.id_venta]) {
+                historial[row.id_venta] = {
+                    id_venta: row.id_venta,
+                    fecha: row.fecha,
+                    total: row.total_venta,
+                    productos: []
+                };
+            }
+
+            historial[row.id_venta].productos.push({
+                id_detalle: row.id_detalle,
+                nombre_pan: row.nombre_pan,
+                cantidad: row.cantidad,
+                precio: row.precio,
+                subtotal: row.subtotal
+            });
+        });
+
+        res.json(Object.values(historial));
+    });
+});
+
+
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
