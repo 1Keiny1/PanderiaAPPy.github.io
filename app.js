@@ -768,7 +768,7 @@ app.get("/admin/historial-compras", (req, res) => {
 
     sql += " ORDER BY v.fecha DESC";
 
-    db.query(sql, params, (err, rows) => {
+    pool.query(sql, params, (err, rows) => {
         if (err) {
             console.error("Error historial admin:", err);
             return res.status(500).json({ error: "Error al obtener el historial" });
