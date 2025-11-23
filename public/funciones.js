@@ -224,15 +224,21 @@ async function obtenerHistorialAdmin() {
     const hasta = document.getElementById("fechaHasta").value;
 
     let url = "/admin/historial-compras";
-
     const params = new URLSearchParams();
 
-    if (fecha) params.append("fechaInicio", fecha);
+    // FILTRO 1: Fecha única
+    if (fecha && !desde && !hasta) {
+        params.append("fechaInicio", fecha);
+        params.append("fechaFin", fecha); // ← OBLIGATORIO
+    }
+
+    // FILTRO 2: Rango desde - hasta
     if (desde && hasta) {
         params.append("fechaInicio", desde);
         params.append("fechaFin", hasta);
     }
 
+    // Nada seleccionado → sin filtros
     if (params.toString() !== "") {
         url += "?" + params.toString();
     }
@@ -251,23 +257,4 @@ async function obtenerHistorialAdmin() {
         console.error(err);
         alert("Error en la solicitud");
     }
-}
-
-function mostrarTablaHistorialAdmin(registros) {
-    const tbody = document.querySelector("#tablaHistorialAdmin tbody");
-    tbody.innerHTML = "";
-
-    registros.forEach((r, i) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${i + 1}</td>
-                <td>${r.usuario}</td>
-                <td>${r.producto}</td>
-                <td>${r.cantidad}</td>
-                <td>$${Number(r.precio).toFixed(2)}</td>
-                <td>$${Number(r.subtotal).toFixed(2)}</td>
-                <td>${r.fecha}</td>
-            </tr>
-        `;
-    });
 }
