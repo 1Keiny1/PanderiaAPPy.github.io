@@ -732,6 +732,56 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 });
 
 
+// HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
+app.get("/admin/historial-compras", async (req, res) => {
+    console.log("Petición recibida: GET /admin/historial-compras");
+
+    // Validar sesión
+    if (!req.session || req.session.rol !== 1) {
+        return res.status(403).json({ error: "Acceso denegado: Solo administradores" });
+    }
+
+    const { fecha, desde, hasta } = req.query;
+
+    let query = `
+        SELECT c.id_compra, c.id_usuario, u.nombre AS usuario, 
+               p.nombre AS producto, dc.cantidad, dc.precio_unitario, 
+               (dc.cantidad * dc.precio_unitario) AS total,
+               DATE_FORMAT(c.fecha_compra, '%Y-%m-%d %H:%i:%s') AS fecha
+        FROM compras c
+        INNER JOIN detalle_compra dc ON c.id_compra = dc.id_compra
+        INNER JOIN producto p ON dc.id_pan = p.id_pan
+        INNER JOIN usuarios u ON c.id_usuario = u.id_usuario
+    `;
+
+    let condiciones = [];
+    let params = [];
+
+    if (fecha) {
+        condiciones.push("DATE(c.fecha_compra) = ?");
+        params.push(fecha);
+    }
+
+    if (desde && hasta) {
+        condiciones.push("DATE(c.fecha_compra) BETWEEN ? AND ?");
+        params.push(desde, hasta);
+    }
+
+    if (condiciones.length > 0) {
+        query += " WHERE " + condiciones.join(" AND ");
+    }
+
+    query += " ORDER BY c.fecha_compra DESC";
+
+    try {
+        const [rows] = await pool.execute(query, params);
+        return res.json(rows);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Error al obtener historial" });
+    }
+});
+
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);

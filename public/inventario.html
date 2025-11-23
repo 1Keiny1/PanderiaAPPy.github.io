@@ -88,6 +88,47 @@
             </table>
         </div>
 
+        <h3>Historial de Compras (Administrador)</h3>
+
+          <div class="row mb-3">
+              <div class="col-md-3">
+                  <label>Fecha específica:</label>
+                  <input type="date" id="fechaUnica" class="form-control">
+              </div>
+
+              <div class="col-md-3">
+                  <label>Desde:</label>
+                  <input type="date" id="fechaDesde" class="form-control">
+              </div>
+
+              <div class="col-md-3">
+                  <label>Hasta:</label>
+                  <input type="date" id="fechaHasta" class="form-control">
+              </div>
+
+              <div class="col-md-3 d-flex align-items-end">
+                  <button class="btn btn-primary w-100" onclick="obtenerHistorialAdmin()">
+                      Buscar
+                  </button>
+              </div>
+          </div>
+
+          <table class="table table-bordered table-striped" id="tablaHistorialAdmin">
+              <thead class="table-dark">
+                  <tr>
+                      <th>#</th>
+                      <th>Usuario</th>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>Precio Unit</th>
+                      <th>Total</th>
+                      <th>Fecha</th>
+                  </tr>
+              </thead>
+              <tbody></tbody>
+          </table>
+
+
     <!-- Modal de Creación-->
     <div class="modal fade" id="modalProducto" tabindex="-1" aria-labelledby="modalProductoLabel" aria-hidden="true">
       <div class="modal-dialog">

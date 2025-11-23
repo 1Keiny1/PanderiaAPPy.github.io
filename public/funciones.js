@@ -217,3 +217,57 @@ if (modalEl) {
     document.getElementById('mensajeError').classList.add('d-none');
   });
 }
+
+async function obtenerHistorialAdmin() {
+    const fecha = document.getElementById("fechaUnica").value;
+    const desde = document.getElementById("fechaDesde").value;
+    const hasta = document.getElementById("fechaHasta").value;
+
+    let url = "/admin/historial-compras";
+
+    const params = new URLSearchParams();
+
+    if (fecha) params.append("fecha", fecha);
+    if (desde && hasta) {
+        params.append("desde", desde);
+        params.append("hasta", hasta);
+    }
+
+    if (params.toString() !== "") {
+        url += "?" + params.toString();
+    }
+
+    try {
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.error || "Error al obtener historial");
+            return;
+        }
+
+        mostrarTablaHistorialAdmin(data);
+    } catch (err) {
+        console.error(err);
+        alert("Error en la solicitud");
+    }
+}
+
+function mostrarTablaHistorialAdmin(registros) {
+    const tbody = document.querySelector("#tablaHistorialAdmin tbody");
+    tbody.innerHTML = "";
+
+    registros.forEach((r, i) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${r.usuario}</td>
+                <td>${r.producto}</td>
+                <td>${r.cantidad}</td>
+                <td>$${r.precio_unitario.toFixed(2)}</td>
+                <td>$${r.total.toFixed(2)}</td>
+                <td>${r.fecha}</td>
+            </tr>
+        `;
+    });
+}
