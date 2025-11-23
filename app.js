@@ -20,7 +20,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
-  connectionLimit: 5,
+  connectionLimit: 4,
   queueLimit: 0
 });
 
@@ -736,7 +736,6 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 app.get("/admin/historial-compras", (req, res) => {
     console.log("Petición recibida: GET /admin/historial-compras");
 
-    // Solo administrador (rol = 1)
     if (!req.session.rol || req.session.rol !== 1) {
         return res.status(403).json({ error: "Acceso denegado" });
     }
@@ -754,7 +753,7 @@ app.get("/admin/historial-compras", (req, res) => {
             dv.precio,
             dv.subtotal
         FROM ventas v
-        INNER JOIN usuarios u ON v.id_usuario = u.id_usuario
+        INNER JOIN usuarios u ON v.id_usuario = u.id
         INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
         INNER JOIN producto p ON dv.id_pan = p.id_pan
     `;
@@ -777,8 +776,6 @@ app.get("/admin/historial-compras", (req, res) => {
         res.json({ historial: rows });
     });
 });
-
-
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
