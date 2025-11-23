@@ -227,10 +227,10 @@ async function obtenerHistorialAdmin() {
 
     const params = new URLSearchParams();
 
-    if (fecha) params.append("fecha", fecha);
+    if (fecha) params.append("fechaInicio", fecha);
     if (desde && hasta) {
-        params.append("desde", desde);
-        params.append("hasta", hasta);
+        params.append("fechaInicio", desde);
+        params.append("fechaFin", hasta);
     }
 
     if (params.toString() !== "") {
