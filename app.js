@@ -672,10 +672,10 @@ function formatearFecha(fechaISO) {
 }
 
 // Obtener historial de compras
-app.get("/historial-compras", (req, res) => {
+app.get("/historial-compras", requireAuth, (req, res) => {
     console.log("Petición recibida: GET /historial-compras");
 
-    const userId = req.user.id_usuario;
+    const userId = req.session.userId; // <- CORRECTO
 
     const query = `
         SELECT 
@@ -694,7 +694,7 @@ app.get("/historial-compras", (req, res) => {
         INNER JOIN detalle_ventas ON ventas.id_venta = detalle_ventas.id_venta
         INNER JOIN producto ON detalle_ventas.id_pan = producto.id_pan
         WHERE ventas.id_usuario = ?
-        ORDER BY ventas.fecha DESC;
+        ORDER BY ventas.fecha DESC
     `;
 
     pool.query(query, [userId], (err, results) => {
@@ -703,7 +703,6 @@ app.get("/historial-compras", (req, res) => {
             return res.status(500).json({ error: "Error al obtener historial" });
         }
 
-        // Agrupar resultados por venta
         const historial = [];
 
         results.forEach(row => {
@@ -714,17 +713,17 @@ app.get("/historial-compras", (req, res) => {
                     id_venta: row.id_venta,
                     fecha: row.fecha,
                     total: row.total_venta,
-                    productos: []
+                    detalles: []
                 };
                 historial.push(venta);
             }
 
-            venta.productos.push({
+            venta.detalles.push({
                 id_detalle: row.id_detalle,
+                nombre_pan: row.nombre_pan,
                 cantidad: row.cantidad,
                 precio: row.precio,
-                subtotal: row.subtotal,
-                nombre: row.nombre_pan
+                subtotal: row.subtotal
             });
         });
 
