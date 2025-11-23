@@ -246,7 +246,7 @@ async function obtenerHistorialAdmin() {
             return;
         }
 
-        mostrarTablaHistorialAdmin(data);
+        mostrarTablaHistorialAdmin(data.historial || []);
     } catch (err) {
         console.error(err);
         alert("Error en la solicitud");
@@ -264,8 +264,8 @@ function mostrarTablaHistorialAdmin(registros) {
                 <td>${r.usuario}</td>
                 <td>${r.producto}</td>
                 <td>${r.cantidad}</td>
-                <td>$${r.precio_unitario.toFixed(2)}</td>
-                <td>$${r.total.toFixed(2)}</td>
+                <td>$${Number(r.precio).toFixed(2)}</td>
+                <td>$${Number(r.subtotal).toFixed(2)}</td>
                 <td>${r.fecha}</td>
             </tr>
         `;

@@ -736,6 +736,7 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 app.get("/admin/historial-compras", (req, res) => {
     console.log("Petición recibida: GET /admin/historial-compras");
 
+    // Solo administrador
     if (!req.session.rol || req.session.rol !== 1) {
         return res.status(403).json({ error: "Acceso denegado" });
     }
@@ -760,11 +761,13 @@ app.get("/admin/historial-compras", (req, res) => {
 
     const params = [];
 
+    // <-- WHERE solo si hay fechas
     if (fechaInicio && fechaFin) {
         sql += " WHERE DATE(v.fecha) BETWEEN ? AND ? ";
         params.push(fechaInicio, fechaFin);
     }
 
+    // <-- ORDER BY siempre al final
     sql += " ORDER BY v.fecha DESC";
 
     pool.query(sql, params, (err, rows) => {
@@ -776,6 +779,8 @@ app.get("/admin/historial-compras", (req, res) => {
         res.json({ historial: rows });
     });
 });
+
+
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
