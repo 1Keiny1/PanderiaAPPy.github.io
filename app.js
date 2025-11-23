@@ -733,54 +733,51 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 
 
 // HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
-app.get("/admin/historial-compras", async (req, res) => {
+app.get("/admin/historial-compras", (req, res) => {
     console.log("Petición recibida: GET /admin/historial-compras");
 
-    // Validar sesión
-    if (!req.session || req.session.rol !== 1) {
-        return res.status(403).json({ error: "Acceso denegado: Solo administradores" });
+    // Solo administrador (rol = 1)
+    if (!req.session.rol || req.session.rol !== 1) {
+        return res.status(403).json({ error: "Acceso denegado" });
     }
 
-    const { fecha, desde, hasta } = req.query;
+    const { fechaInicio, fechaFin } = req.query;
 
-    let query = `
-        SELECT c.id_compra, c.id_usuario, u.nombre AS usuario, 
-               p.nombre AS producto, dc.cantidad, dc.precio_unitario, 
-               (dc.cantidad * dc.precio_unitario) AS total,
-               DATE_FORMAT(c.fecha_compra, '%Y-%m-%d %H:%i:%s') AS fecha
-        FROM compras c
-        INNER JOIN detalle_compra dc ON c.id_compra = dc.id_compra
-        INNER JOIN producto p ON dc.id_pan = p.id_pan
-        INNER JOIN usuarios u ON c.id_usuario = u.id_usuario
+    let sql = `
+        SELECT 
+            v.id_venta,
+            v.fecha,
+            v.total,
+            u.nombre AS usuario,
+            p.nombre AS producto,
+            dv.cantidad,
+            dv.precio,
+            dv.subtotal
+        FROM ventas v
+        INNER JOIN usuarios u ON v.id_usuario = u.id_usuario
+        INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
+        INNER JOIN producto p ON dv.id_pan = p.id_pan
     `;
 
-    let condiciones = [];
-    let params = [];
+    const params = [];
 
-    if (fecha) {
-        condiciones.push("DATE(c.fecha_compra) = ?");
-        params.push(fecha);
+    if (fechaInicio && fechaFin) {
+        sql += " WHERE DATE(v.fecha) BETWEEN ? AND ? ";
+        params.push(fechaInicio, fechaFin);
     }
 
-    if (desde && hasta) {
-        condiciones.push("DATE(c.fecha_compra) BETWEEN ? AND ?");
-        params.push(desde, hasta);
-    }
+    sql += " ORDER BY v.fecha DESC";
 
-    if (condiciones.length > 0) {
-        query += " WHERE " + condiciones.join(" AND ");
-    }
+    db.query(sql, params, (err, rows) => {
+        if (err) {
+            console.error("Error historial admin:", err);
+            return res.status(500).json({ error: "Error al obtener el historial" });
+        }
 
-    query += " ORDER BY c.fecha_compra DESC";
-
-    try {
-        const [rows] = await pool.execute(query, params);
-        return res.json(rows);
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Error al obtener historial" });
-    }
+        res.json({ historial: rows });
+    });
 });
+
 
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
