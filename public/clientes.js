@@ -310,7 +310,7 @@ document.getElementById("modalHistorial").addEventListener("show.bs.modal", asyn
             item.classList.add("list-group-item");
 
             let productosHTML = "";
-            venta.productos.forEach(p => {
+            venta.detalles.forEach(p => {
                 productosHTML += `
                     <div class="d-flex justify-content-between">
                         <span>${p.nombre_pan} (x${p.cantidad})</span>
