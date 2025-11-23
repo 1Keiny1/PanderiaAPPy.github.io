@@ -711,7 +711,7 @@ app.get("/historial-compras", requireAuth, (req, res) => {
             if (!venta) {
                 venta = {
                     id_venta: row.id_venta,
-                    fecha: row.fecha,
+                    fecha: formatearFecha(row.fecha),
                     total: row.total_venta,
                     detalles: []
                 };
