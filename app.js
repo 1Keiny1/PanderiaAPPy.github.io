@@ -744,7 +744,7 @@ app.get("/admin/historial-compras", (req, res) => {
     let sql = `
         SELECT 
             v.id_venta,
-            v.fecha,
+            DATE_FORMAT(v.fecha, '%Y-%m-%d %H:%i:%s') AS fecha,
             v.total,
             u.nombre AS usuario,
             p.nombre AS producto,
@@ -756,6 +756,7 @@ app.get("/admin/historial-compras", (req, res) => {
         INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
         INNER JOIN producto p ON dv.id_pan = p.id_pan
     `;
+
 
     const params = [];
     const filtros = [];
