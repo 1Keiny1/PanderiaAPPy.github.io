@@ -732,59 +732,63 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 });
 
 // HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
-app.post("/historial-admin", async (req, res) => {
-    const { fechaUnica, fechaDesde, fechaHasta } = req.body;
+app.get("/admin/historial-compras", (req, res) => {
+    console.log("Petición recibida: GET /admin/historial-compras");
 
-    try {
-        let query = `
-            SELECT v.id_venta, u.nombre AS usuario, p.nombre AS producto, 
-                   v.cantidad, v.precio_unit, v.total, v.fecha
-            FROM ventas v
-            INNER JOIN usuarios u ON v.id_usuario = u.id_usuario
-            INNER JOIN productos p ON v.id_producto = p.id_producto
-        `;
-
-        let params = [];
-        let condiciones = [];
-
-        // Caso 1: Fecha única
-        if (fechaUnica && !fechaDesde && !fechaHasta) {
-            condiciones.push("DATE(v.fecha) = ?");
-            params.push(fechaUnica);
-        }
-
-        // Caso 2: Rango completo
-        else if (fechaDesde && fechaHasta && !fechaUnica) {
-            condiciones.push("DATE(v.fecha) BETWEEN ? AND ?");
-            params.push(fechaDesde, fechaHasta);
-        }
-
-        // Caso 3: Nada
-        else if (!fechaUnica && !fechaDesde && !fechaHasta) {
-            // no aplica filtro
-        }
-
-        // Caso inválido
-        else {
-            return res.status(400).json({
-                error: "Campos inválidos. Solo usa FECHA ÚNICA o RANGO, no ambos."
-            });
-        }
-
-        if (condiciones.length > 0) {
-            query += " WHERE " + condiciones.join(" AND ");
-        }
-
-        query += " ORDER BY v.fecha DESC";
-
-        const [rows] = await pool.query(query, params);
-
-        res.json(rows);
-
-    } catch (error) {
-        console.error("Error en /historial-admin:", error);
-        res.status(500).json({ error: "Error en la solicitud" });
+    if (!req.session.rol || req.session.rol !== 1) {
+        return res.status(403).json({ error: "Acceso denegado" });
     }
+
+    const { fechaInicio, fechaFin } = req.query;
+
+    let sql = `
+        SELECT 
+            v.id_venta,
+            v.fecha,
+            v.total,
+            u.nombre AS usuario,
+            p.nombre AS producto,
+            dv.cantidad,
+            dv.precio,
+            dv.subtotal
+        FROM ventas v
+        INNER JOIN usuarios u ON v.id_usuario = u.id
+        INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
+        INNER JOIN producto p ON dv.id_pan = p.id_pan
+    `;
+
+    const params = [];
+    const filtros = [];
+
+    // --- FILTROS ---
+    if (fechaInicio) {
+        filtros.push("DATE(v.fecha) >= ?");
+        params.push(fechaInicio);
+    }
+
+    if (fechaFin) {
+        filtros.push("DATE(v.fecha) <= ?");
+        params.push(fechaFin);
+    }
+
+    // Si hay filtros, agrégalos
+    if (filtros.length > 0) {
+        sql += " WHERE " + filtros.join(" AND ");
+    }
+
+    sql += " ORDER BY v.fecha DESC";
+
+    console.log("SQL Final:", sql);
+    console.log("Params:", params);
+
+    pool.query(sql, params, (err, rows) => {
+        if (err) {
+            console.error("Error historial admin:", err);
+            return res.status(500).json({ error: "Error al obtener el historial" });
+        }
+
+        res.json({ historial: rows });
+    });
 });
 
 
