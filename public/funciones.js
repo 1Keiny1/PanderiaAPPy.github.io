@@ -218,6 +218,26 @@ if (modalEl) {
   });
 }
 
+function obtenerHistorialAdmin() {
+    const fechaUnica = document.getElementById("fechaUnica").value;
+    const desde = document.getElementById("fechaDesde").value;
+    const hasta = document.getElementById("fechaHasta").value;
+
+    // Si solo tiene fecha única
+    if (fechaUnica && !desde && !hasta) {
+        obtenerHistorialAdminPorDia();
+        return;
+    }
+
+    // Si tiene rango
+    if (desde && hasta) {
+        obtenerHistorialAdminPorRango();
+        return;
+    }
+
+    alert("Selecciona una fecha o un rango válido.");
+}
+
 async function obtenerHistorialAdminPorDia() {
     const fecha = document.getElementById("fechaUnica").value;
 
