@@ -219,57 +219,55 @@ if (modalEl) {
 }
 
 async function obtenerHistorialAdmin() {
-    const fechaUnica = document.getElementById("fechaUnica").value;
-    const fechaDesde = document.getElementById("fechaDesde").value;
-    const fechaHasta = document.getElementById("fechaHasta").value;
+    const fecha = document.getElementById("fechaUnica").value;
+    const desde = document.getElementById("fechaDesde").value;
+    const hasta = document.getElementById("fechaHasta").value;
 
-    // --- LIMPIEZA AUTOMÁTICA PARA EVITAR ERRORES ---
-    const body = {
-        fechaUnica: fechaUnica || null,
-        fechaDesde: fechaDesde || null,
-        fechaHasta: fechaHasta || null
-    };
+    let url = "/admin/historial-compras";
 
-    console.log("Enviando body limpio:", body);
+    const params = new URLSearchParams();
+
+    if (fecha) params.append("fecha", fecha);
+    if (desde && hasta) {
+        params.append("desde", desde);
+        params.append("hasta", hasta);
+    }
+
+    if (params.toString() !== "") {
+        url += "?" + params.toString();
+    }
 
     try {
-        const res = await fetch("/historial-admin", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-
+        const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
 
-        const tbody = document.querySelector("#tablaHistorialAdmin tbody");
-        tbody.innerHTML = "";
-
         if (!res.ok) {
-            alert(data.error || "Error en la solicituuud");
+            alert(data.error || "Error al obtener historial");
             return;
         }
 
-        if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center">Sin resultados</td></tr>`;
-            return;
-        }
-
-        data.forEach((item, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.usuario}</td>
-                    <td>${item.producto}</td>
-                    <td>${item.cantidad}</td>
-                    <td>$${item.precio_unit}</td>
-                    <td>$${item.total}</td>
-                    <td>${item.fecha}</td>
-                </tr>
-            `;
-        });
-
+        mostrarTablaHistorialAdmin(data.historial || []);
     } catch (err) {
         console.error(err);
         alert("Error en la solicitud");
     }
+}
+
+function mostrarTablaHistorialAdmin(registros) {
+    const tbody = document.querySelector("#tablaHistorialAdmin tbody");
+    tbody.innerHTML = "";
+
+    registros.forEach((r, i) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${r.usuario}</td>
+                <td>${r.producto}</td>
+                <td>${r.cantidad}</td>
+                <td>$${Number(r.precio).toFixed(2)}</td>
+                <td>$${Number(r.subtotal).toFixed(2)}</td>
+                <td>${r.fecha}</td>
+            </tr>
+        `;
+    });
 }
