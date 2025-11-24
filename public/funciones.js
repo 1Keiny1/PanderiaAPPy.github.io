@@ -218,35 +218,47 @@ if (modalEl) {
   });
 }
 
-async function obtenerHistorialAdmin() {
+async function obtenerHistorialAdminPorDia() {
     const fecha = document.getElementById("fechaUnica").value;
-    const desde = document.getElementById("fechaDesde").value;
-    const hasta = document.getElementById("fechaHasta").value;
 
-    let url = "/admin/historial-compras";
-
-    const params = new URLSearchParams();
-
-    if (fecha) params.append("fecha", fecha);
-    if (desde && hasta) {
-        params.append("desde", desde);
-        params.append("hasta", hasta);
-    }
-
-    if (params.toString() !== "") {
-        url += "?" + params.toString();
+    if (!fecha) {
+        return alert("Selecciona una fecha");
     }
 
     try {
-        const res = await fetch(url, { credentials: "include" });
+        const res = await fetch(`/admin/historial-compras/dia?fecha=${fecha}`, {
+            credentials: "include"
+        });
+
         const data = await res.json();
 
-        if (!res.ok) {
-            alert(data.error || "Error al obtener historial");
-            return;
-        }
+        if (!res.ok) return alert(data.error);
 
-        mostrarTablaHistorialAdmin(data.historial || []);
+        mostrarTablaHistorialAdmin(data.historial);
+    } catch (err) {
+        console.error(err);
+        alert("Error en la solicitud");
+    }
+}
+
+async function obtenerHistorialAdminPorRango() {
+    const desde = document.getElementById("fechaDesde").value;
+    const hasta = document.getElementById("fechaHasta").value;
+
+    if (!desde || !hasta) {
+        return alert("Selecciona ambas fechas");
+    }
+
+    try {
+        const res = await fetch(`/admin/historial-compras/rango?desde=${desde}&hasta=${hasta}`, {
+            credentials: "include"
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) return alert(data.error);
+
+        mostrarTablaHistorialAdmin(data.historial);
     } catch (err) {
         console.error(err);
         alert("Error en la solicitud");
