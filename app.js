@@ -234,6 +234,12 @@ app.post("/registrar", async (req, res) => {
             "INSERT INTO usuarios (nombre, correo, contraseña, id_rol) VALUES (?, ?, ?, ?)",
             [nombre, correo, contrasena, rol]
         );
+        // Crear cartera al nuevo usuario
+        await con.promise().query(
+            "INSERT INTO cartera (id_usuario, dinero) VALUES (?, 0)",
+            [result.insertId]
+        );
+
         res.json({ mensaje: "Usuario registrado correctamente" });
     } catch (err) {
         console.error(err);
