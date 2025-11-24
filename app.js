@@ -733,20 +733,21 @@ app.get("/historial-compras", requireAuth, (req, res) => {
 
 
 // HISTORIAL PARA ADMINISTRADORES (FILTRADO POR FECHAS)
-app.get("/admin/historial-compras", (req, res) => {
-    console.log("Petición recibida: GET /admin/historial-compras");
-
+app.get("/admin/historial-compras/dia", (req, res) => {
     if (!req.session.rol || req.session.rol !== 1) {
         return res.status(403).json({ error: "Acceso denegado" });
     }
 
-    const { fecha, desde, hasta } = req.query;
+    const { fecha } = req.query;
 
-    let sql = `
+    if (!fecha) {
+        return res.status(400).json({ error: "Falta la fecha" });
+    }
+
+    const sql = `
         SELECT 
             v.id_venta,
             v.fecha,
-            v.total,
             u.nombre AS usuario,
             p.nombre AS producto,
             dv.cantidad,
@@ -756,38 +757,56 @@ app.get("/admin/historial-compras", (req, res) => {
         INNER JOIN usuarios u ON v.id_usuario = u.id
         INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
         INNER JOIN producto p ON dv.id_pan = p.id_pan
+        WHERE DATE(v.fecha) = ?
+        ORDER BY v.fecha DESC
     `;
 
-    const params = [];
-    let where = [];
-
-    // Fecha única
-    if (fecha) {
-        where.push("DATE(v.fecha) = ?");
-        params.push(fecha);
-    }
-
-    // Rango
-    if (desde && hasta) {
-        where.push("DATE(v.fecha) BETWEEN ? AND ?");
-        params.push(desde, hasta);
-    }
-
-    if (where.length > 0) {
-        sql += " WHERE " + where.join(" AND ");
-    }
-
-    sql += " ORDER BY v.fecha DESC";
-
-    pool.query(sql, params, (err, rows) => {
+    pool.query(sql, [fecha], (err, rows) => {
         if (err) {
-            console.error("Error historial admin:", err);
-            return res.status(500).json({ error: "Error al obtener el historial" });
+            console.error("Error historial por día:", err);
+            return res.status(500).json({ error: "Error interno" });
         }
-
         res.json({ historial: rows });
     });
 });
+
+app.get("/admin/historial-compras/rango", (req, res) => {
+    if (!req.session.rol || req.session.rol !== 1) {
+        return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const { desde, hasta } = req.query;
+
+    if (!desde || !hasta) {
+        return res.status(400).json({ error: "Fechas incompletas" });
+    }
+
+    const sql = `
+        SELECT 
+            v.id_venta,
+            v.fecha,
+            u.nombre AS usuario,
+            p.nombre AS producto,
+            dv.cantidad,
+            dv.precio,
+            dv.subtotal
+        FROM ventas v
+        INNER JOIN usuarios u ON v.id_usuario = u.id
+        INNER JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
+        INNER JOIN producto p ON dv.id_pan = p.id_pan
+        WHERE DATE(v.fecha) BETWEEN ? AND ?
+        ORDER BY v.fecha DESC
+    `;
+
+    pool.query(sql, [desde, hasta], (err, rows) => {
+        if (err) {
+            console.error("Error historial rango:", err);
+            return res.status(500).json({ error: "Error interno" });
+        }
+        res.json({ historial: rows });
+    });
+});
+
 
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
