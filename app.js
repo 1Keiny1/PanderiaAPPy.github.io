@@ -202,6 +202,7 @@ app.post("/login", async (req, res) => {
 
 
 // Sesiones Registrarse
+
 app.post("/registrar", async (req, res) => {
     let { nombre, correo, contrasena, rol } = req.body;
 
@@ -221,7 +222,7 @@ app.post("/registrar", async (req, res) => {
 
     const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
     if (!contrasena || !passRegex.test(contrasena)) {
-        return res.status(400).json({ error: "Contraseña inválida" });
+        return res.status(400).json({ error: "Contraseña inválida: Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 carácter especial" });
     }
 
     if (!rol || (rol != 1 && rol != 3)) {
@@ -229,42 +230,29 @@ app.post("/registrar", async (req, res) => {
     }
 
     try {
-        // INSERT usuario y obtener insertId
-        con.query(
+        await con.query(
             "INSERT INTO usuarios (nombre, correo, contraseña, id_rol) VALUES (?, ?, ?, ?)",
-            [nombre, correo, contrasena, rol],
-            (err, result) => {
-                if (err) {
-                    console.error(err);
-                    if (err.code === "ER_DUP_ENTRY") {
-                        return res.status(400).json({ error: "El correo ya está registrado" });
-                    }
-                    return res.status(500).json({ error: "Error al registrar usuario" });
-                }
-
-                const idUsuario = result.insertId;
-
-                // Crear cartera al nuevo usuario
-                con.query(
-                    "INSERT INTO cartera (id_usuario, dinero) VALUES (?, 0)",
-                    [idUsuario],
-                    (err2) => {
-                        if (err2) {
-                            console.error(err2);
-                            return res.status(500).json({ error: "Error al crear cartera" });
-                        }
-
-                        res.json({ mensaje: "Usuario registrado correctamente" });
-                    }
-                );
-            }
+            [nombre, correo, contrasena, rol]
         );
+
+    // Crear cartera para usuarios que no tengan (incluye este nuevo)
+    await con.query(`
+        INSERT INTO cartera (id_usuario, dinero)
+        SELECT u.id, 0
+        FROM usuarios u
+        LEFT JOIN cartera c ON c.id_usuario = u.id
+        WHERE c.id_usuario IS NULL
+    `);
+
+        res.json({ mensaje: "Usuario registrado correctamente" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Error inesperado" });
+        if (err.code === "ER_DUP_ENTRY") {
+            return res.status(400).json({ error: "El correo ya está registrado" });
+        }
+        res.status(500).json({ error: "Error al registrar usuario" });
     }
 });
-
 
 // Sesiones Cerrar Sesion
 
