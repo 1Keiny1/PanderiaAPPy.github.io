@@ -737,34 +737,34 @@ app.post("/historial-admin", async (req, res) => {
 
     try {
         let query = `
-          SELECT v.id_venta, u.nombre AS usuario, p.nombre AS producto, 
-                 v.cantidad, v.precio_unit, v.total, v.fecha
-          FROM ventas v
-          INNER JOIN usuarios u ON v.id_usuario = u.id_usuario
-          INNER JOIN productos p ON v.id_producto = p.id_producto
+            SELECT v.id_venta, u.nombre AS usuario, p.nombre AS producto, 
+                   v.cantidad, v.precio_unit, v.total, v.fecha
+            FROM ventas v
+            INNER JOIN usuarios u ON v.id_usuario = u.id_usuario
+            INNER JOIN productos p ON v.id_producto = p.id_producto
         `;
 
         let params = [];
         let condiciones = [];
 
-        // --- CASO 1: FECHA ÚNICA
+        // Caso 1: Fecha única
         if (fechaUnica && !fechaDesde && !fechaHasta) {
             condiciones.push("DATE(v.fecha) = ?");
             params.push(fechaUnica);
         }
 
-        // --- CASO 2: RANGO COMPLETO
+        // Caso 2: Rango completo
         else if (fechaDesde && fechaHasta && !fechaUnica) {
             condiciones.push("DATE(v.fecha) BETWEEN ? AND ?");
             params.push(fechaDesde, fechaHasta);
         }
 
-        // --- CASO 3: NO SE INGRESA NINGÚN CAMPO
+        // Caso 3: Nada
         else if (!fechaUnica && !fechaDesde && !fechaHasta) {
-            // NO aplicar filtros
+            // no aplica filtro
         }
 
-        // --- CASOS INVÁLIDOS
+        // Caso inválido
         else {
             return res.status(400).json({
                 error: "Campos inválidos. Solo usa FECHA ÚNICA o RANGO, no ambos."
@@ -783,9 +783,7 @@ app.post("/historial-admin", async (req, res) => {
 
     } catch (error) {
         console.error("Error en /historial-admin:", error);
-        res.status(500).json({
-            error: "Error en la solicitud"
-        });
+        res.status(500).json({ error: "Error en la solicitud" });
     }
 });
 

@@ -223,11 +223,20 @@ async function obtenerHistorialAdmin() {
     const fechaDesde = document.getElementById("fechaDesde").value;
     const fechaHasta = document.getElementById("fechaHasta").value;
 
+    // --- LIMPIEZA AUTOMÁTICA PARA EVITAR ERRORES ---
+    const body = {
+        fechaUnica: fechaUnica || null,
+        fechaDesde: fechaDesde || null,
+        fechaHasta: fechaHasta || null
+    };
+
+    console.log("Enviando body limpio:", body);
+
     try {
         const res = await fetch("/historial-admin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fechaUnica, fechaDesde, fechaHasta }),
+            body: JSON.stringify(body)
         });
 
         const data = await res.json();
