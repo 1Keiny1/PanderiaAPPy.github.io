@@ -219,45 +219,46 @@ if (modalEl) {
 }
 
 async function obtenerHistorialAdmin() {
-    const fecha = document.getElementById("fechaUnica").value.trim();
-    const desde = document.getElementById("fechaDesde").value.trim();
-    const hasta = document.getElementById("fechaHasta").value.trim();
-
-    let url = "/admin/historial-compras";
-    const params = new URLSearchParams();
-
-    // FILTRO 1: Fecha única
-    if (fecha && !desde && !hasta) {
-        params.set("fechaInicio", fecha);
-        params.set("fechaFin", fecha);
-    }
-
-    // FILTRO 2: Rango
-    if (desde && hasta) {
-        params.set("fechaInicio", desde);
-        params.set("fechaFin", hasta);
-    }
-
-    // Evitar parámetros vacíos
-    if (![...params.values()].every(v => v)) {
-        alert("Debes seleccionar una fecha válida.");
-        return;
-    }
-
-    if (params.toString() !== "") {
-        url += "?" + params.toString();
-    }
+    const fechaUnica = document.getElementById("fechaUnica").value;
+    const fechaDesde = document.getElementById("fechaDesde").value;
+    const fechaHasta = document.getElementById("fechaHasta").value;
 
     try {
-        const res = await fetch(url, { credentials: "include" });
+        const res = await fetch("/historial-admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fechaUnica, fechaDesde, fechaHasta }),
+        });
+
         const data = await res.json();
 
+        const tbody = document.querySelector("#tablaHistorialAdmin tbody");
+        tbody.innerHTML = "";
+
         if (!res.ok) {
-            alert(data.error || "Error al obtener historial");
+            alert(data.error || "Error en la solicitud");
             return;
         }
 
-        mostrarTablaHistorialAdmin(data.historial || []);
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">Sin resultados</td></tr>`;
+            return;
+        }
+
+        data.forEach((item, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.usuario}</td>
+                    <td>${item.producto}</td>
+                    <td>${item.cantidad}</td>
+                    <td>$${item.precio_unit}</td>
+                    <td>$${item.total}</td>
+                    <td>${item.fecha}</td>
+                </tr>
+            `;
+        });
+
     } catch (err) {
         console.error(err);
         alert("Error en la solicitud");
