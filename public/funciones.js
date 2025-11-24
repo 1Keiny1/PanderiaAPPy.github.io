@@ -236,7 +236,7 @@ async function obtenerHistorialAdmin() {
         tbody.innerHTML = "";
 
         if (!res.ok) {
-            alert(data.error || "Error en la solicitud");
+            alert(data.error || "Error en la solicituuud");
             return;
         }
 
