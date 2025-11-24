@@ -339,3 +339,54 @@ document.getElementById("modalHistorial").addEventListener("show.bs.modal", asyn
         console.error(error);
     }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const saldoActualDiv = document.getElementById("saldoActual");
+  const inputFondos = document.getElementById("inputFondos");
+  const btnAgregarFondos = document.getElementById("btnAgregarFondos");
+
+  // Función para obtener saldo del usuario
+  async function obtenerSaldo() {
+    try {
+      const res = await fetch("/api/cartera"); // Endpoint que devuelve { dinero: 0.00 }
+      const data = await res.json();
+      saldoActualDiv.textContent = `$${Number(data.dinero).toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
+    } catch (err) {
+      console.error(err);
+      saldoActualDiv.textContent = "Error al cargar saldo";
+    }
+  }
+
+  // Ejecutar al abrir modal
+  const modalCartera = document.getElementById("modalCartera");
+  modalCartera.addEventListener("show.bs.modal", obtenerSaldo);
+
+  // Agregar fondos
+  btnAgregarFondos.addEventListener("click", async () => {
+    const cantidad = parseFloat(inputFondos.value);
+    if (isNaN(cantidad) || cantidad <= 0) {
+      alert("Ingresa una cantidad válida mayor a 0");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/cartera/agregar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cantidad })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Fondos agregados correctamente");
+        inputFondos.value = "";
+        obtenerSaldo();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al agregar fondos");
+    }
+  });
+});

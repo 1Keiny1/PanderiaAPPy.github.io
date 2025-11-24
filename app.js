@@ -817,6 +817,31 @@ app.get("/admin/historial-compras/rango", (req, res) => {
     });
 });
 
+// Obtener saldo
+app.get("/api/cartera", async (req, res) => {
+  const userId = req.session.userId; // O como almacenes sesión
+  const [cartera] = await con.query("SELECT dinero FROM cartera WHERE id_usuario = ?", [userId]);
+  res.json(cartera[0]);
+});
+
+// Agregar fondos
+app.post("/api/cartera/agregar", async (req, res) => {
+  const userId = req.session.userId;
+  const { cantidad } = req.body;
+  
+  if (cantidad <= 0) return res.json({ error: "La cantidad debe ser mayor a 0" });
+
+  // Actualizar sin pasarse del máximo
+  await con.query(`
+    UPDATE cartera
+    SET dinero = LEAST(dinero + ?, 999999999999)
+    WHERE id_usuario = ?
+  `, [cantidad, userId]);
+
+  const [cartera] = await con.query("SELECT dinero FROM cartera WHERE id_usuario = ?", [userId]);
+  res.json(cartera[0]);
+});
+
 
 const port = process.env.PORT || 10000;
 app.listen(port, () => {
