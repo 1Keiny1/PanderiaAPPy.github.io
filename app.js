@@ -202,7 +202,6 @@ app.post("/login", async (req, res) => {
 
 
 // Sesiones Registrarse
-
 app.post("/registrar", async (req, res) => {
     let { nombre, correo, contrasena, rol } = req.body;
 
@@ -222,7 +221,7 @@ app.post("/registrar", async (req, res) => {
 
     const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
     if (!contrasena || !passRegex.test(contrasena)) {
-        return res.status(400).json({ error: "Contraseña inválida: Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 carácter especial" });
+        return res.status(400).json({ error: "Contraseña inválida" });
     }
 
     if (!rol || (rol != 1 && rol != 3)) {
@@ -230,25 +229,42 @@ app.post("/registrar", async (req, res) => {
     }
 
     try {
-        await con.query(
+        // INSERT usuario y obtener insertId
+        con.query(
             "INSERT INTO usuarios (nombre, correo, contraseña, id_rol) VALUES (?, ?, ?, ?)",
-            [nombre, correo, contrasena, rol]
-        );
-        // Crear cartera al nuevo usuario
-        await con.promise().query(
-            "INSERT INTO cartera (id_usuario, dinero) VALUES (?, 0)",
-            [result.insertId]
-        );
+            [nombre, correo, contrasena, rol],
+            (err, result) => {
+                if (err) {
+                    console.error(err);
+                    if (err.code === "ER_DUP_ENTRY") {
+                        return res.status(400).json({ error: "El correo ya está registrado" });
+                    }
+                    return res.status(500).json({ error: "Error al registrar usuario" });
+                }
 
-        res.json({ mensaje: "Usuario registrado correctamente" });
+                const idUsuario = result.insertId;
+
+                // Crear cartera al nuevo usuario
+                con.query(
+                    "INSERT INTO cartera (id_usuario, dinero) VALUES (?, 0)",
+                    [idUsuario],
+                    (err2) => {
+                        if (err2) {
+                            console.error(err2);
+                            return res.status(500).json({ error: "Error al crear cartera" });
+                        }
+
+                        res.json({ mensaje: "Usuario registrado correctamente" });
+                    }
+                );
+            }
+        );
     } catch (err) {
         console.error(err);
-        if (err.code === "ER_DUP_ENTRY") {
-            return res.status(400).json({ error: "El correo ya está registrado" });
-        }
-        res.status(500).json({ error: "Error al registrar usuario" });
+        res.status(500).json({ error: "Error inesperado" });
     }
 });
+
 
 // Sesiones Cerrar Sesion
 
