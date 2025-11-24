@@ -760,18 +760,17 @@ app.get("/admin/historial-compras", (req, res) => {
     const params = [];
     const filtros = [];
 
-    // --- FILTROS ---
-    if (fechaInicio) {
+    // FILTROS seguros
+    if (fechaInicio && fechaInicio.trim() !== "") {
         filtros.push("DATE(v.fecha) >= ?");
         params.push(fechaInicio);
     }
 
-    if (fechaFin) {
+    if (fechaFin && fechaFin.trim() !== "") {
         filtros.push("DATE(v.fecha) <= ?");
         params.push(fechaFin);
     }
 
-    // Si hay filtros, agrégalos
     if (filtros.length > 0) {
         sql += " WHERE " + filtros.join(" AND ");
     }
