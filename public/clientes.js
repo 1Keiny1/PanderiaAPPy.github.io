@@ -51,6 +51,19 @@ function renderCarrito() {
     lista.appendChild(item);
   });
 
+  // --- TOTAL DE COMPRA ---
+  const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+
+  const totalDiv = document.createElement("div");
+  totalDiv.className = "list-group-item d-flex justify-content-between fw-bold";
+  totalDiv.innerHTML = `
+      <span>Total a pagar:</span>
+      <span>$${total.toFixed(2)}</span>
+  `;
+
+  lista.appendChild(totalDiv);
+
+
   // Delegación de eventos segura
   lista.querySelectorAll(".sumar").forEach(btn => {
     btn.onclick = () => {
@@ -129,49 +142,55 @@ function configurarCarritoVacio() {
 function configurarCompra() {
   const procederCompraBtn = document.getElementById("procederCompra");
   if (procederCompraBtn) {
-    procederCompraBtn.addEventListener("click", async () => {
-      if (!carrito.length) return alert("Tu carrito está vacío.");
+  procederCompraBtn.addEventListener("click", async () => {
+    if (!carrito.length) return alert("Tu carrito está vacío.");
 
-      console.log("=== INICIANDO COMPRA ===");
-      console.log("Carrito a enviar:", carrito);
+    // Calcular total del carrito
+    const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
 
-      try {
+    // Obtener saldo del usuario antes de comprar
+    let saldoActual = 0;
+    try {
+        const resSaldo = await fetch("/api/cartera");
+        const dataSaldo = await resSaldo.json();
+        saldoActual = Number(dataSaldo.dinero);
+    } catch (err) {
+        console.error(err);
+        return alert("Error al verificar saldo");
+    }
+
+    // Verificar si alcanza el saldo
+    if (saldoActual < total) {
+        return alert(`Saldo insuficiente \nNecesitas: $${total.toFixed(2)}\nTienes: $${saldoActual.toFixed(2)}`);
+    }
+
+    console.log("=== INICIANDO COMPRA ===");
+
+    try {
         const res = await fetch("/comprar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ carrito }),
-          credentials: "include"
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ carrito }),
+            credentials: "include"
         });
 
-        console.log("Status de respuesta:", res.status, res.statusText);
-
-        // Intentar leer la respuesta como JSON
-        let data;
-        try {
-          data = await res.json();
-          console.log("Datos recibidos del servidor:", data);
-        } catch (jsonErr) {
-          console.error("Error al parsear JSON:", jsonErr);
-          return alert("Error: El servidor no devolvió una respuesta válida.");
-        }
+        const data = await res.json();
 
         if (!res.ok) {
-          console.error("Error del servidor:", data);
-          // Mostrar mensaje más detallado
-          const errorMsg = data.mensaje || data.error || `Error ${res.status}: ${res.statusText}`;
-          return alert(errorMsg);
+            return alert(data.error || "Error en la compra");
         }
 
-        alert(data.mensaje || "Compra realizada con éxito 🎉");
+        alert(`Compra realizada con éxito \nSe descontó: $${total.toFixed(2)}`);
 
         carrito = [];
         guardarCarrito();
         renderCarrito();
-      } catch (err) {
+
+    } catch (err) {
         console.error("Error completo:", err);
         alert(`Error al procesar la compra: ${err.message}`);
-      }
-    });
+    }
+  });
   }
 }
 

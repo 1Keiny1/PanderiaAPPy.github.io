@@ -597,75 +597,126 @@ app.get("/obtenerTemporadas", async (req, res) => {
 // Procesar compra del carrito
 // Agrega este middleware ANTES de la ruta /comprar para ver qué está pasando
 
-app.post("/comprar", (req, res, next) => {
-  console.log("=== DEBUG COMPRA ===");
-  console.log("Session:", req.session);
-  console.log("userId:", req.session?.userId);
-  console.log("rol:", req.session?.rol);
-  console.log("Carrito recibido:", req.body.carrito);
-  console.log("==================");
-  next();
-}, requireAuth, requireRole(3), async (req, res) => {
-  const { carrito } = req.body;
+app.post("/comprar",
+  (req, res, next) => {
+    console.log("=== DEBUG COMPRA ===");
+    console.log("Session:", req.session);
+    console.log("userId:", req.session?.userId);
+    console.log("rol:", req.session?.rol);
+    console.log("Carrito recibido:", req.body.carrito);
+    console.log("==================");
+    next();
+  },
+  requireAuth,
+  requireRole(3),
+  async (req, res) => {
 
-  if (!carrito || carrito.length === 0) {
-    return res.status(400).json({ mensaje: "Carrito vacío" });
-  }
+    const { carrito } = req.body;
 
-  // ⚠️ AQUÍ ESTÁ EL CAMBIO IMPORTANTE
-  const connection = await con.getConnection();
-
-  try {
-    // Iniciar transacción en la conexión individual
-    await connection.beginTransaction();
-
-    // Verificar stock
-    for (const p of carrito) {
-      const [rows] = await connection.query(
-        "SELECT cantidad, nombre FROM producto WHERE id_pan = ?",
-        [p.id_pan]
-      );
-
-      if (rows.length === 0) throw new Error(`Producto ${p.nombre} no encontrado.`);
-      if (rows[0].cantidad < p.cantidad)
-        throw new Error(`No hay suficiente inventario de ${rows[0].nombre}. Disponible: ${rows[0].cantidad}`);
+    if (!carrito || carrito.length === 0) {
+      return res.status(400).json({ mensaje: "Carrito vacío" });
     }
 
-    // Insertar venta
-    const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
-    const [ventaResult] = await connection.query(
-      "INSERT INTO ventas (id_usuario, fecha, total) VALUES (?, NOW(), ?)",
-      [req.session.userId, total]
-    );
-    const idVenta = ventaResult.insertId;
+    const connection = await con.getConnection();
 
-    // Insertar detalle y actualizar inventario
-    for (const p of carrito) {
-      const subtotal = p.precio * p.cantidad;
+    try {
+      await connection.beginTransaction();
 
-      await connection.query(
-        "INSERT INTO detalle_ventas (id_venta, id_pan, cantidad, subtotal, precio) VALUES (?, ?, ?, ?, ?)",
-        [idVenta, p.id_pan, p.cantidad, subtotal, p.precio]
+      // ============================
+      // 1. Calcular total de compra
+      // ============================
+      const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+
+      // ============================
+      // 2. Obtener saldo de cartera
+      // ============================
+      const [carteraRows] = await connection.query(
+        "SELECT dinero FROM cartera WHERE id_usuario = ? FOR UPDATE",
+        [req.session.userId]
       );
 
-      await connection.query(
-        "UPDATE producto SET cantidad = cantidad - ? WHERE id_pan = ?",
-        [p.cantidad, p.id_pan]
+      if (!carteraRows.length) {
+        throw new Error("No se encontró la cartera del usuario.");
+      }
+
+      const saldoActual = parseFloat(carteraRows[0].dinero);
+
+      // ============================
+      // 3. Validar si alcanza
+      // ============================
+      if (saldoActual < total) {
+        throw new Error(
+          `Saldo insuficiente. Te faltan $${(total - saldoActual).toFixed(2)}`
+        );
+      }
+
+      // ============================
+      // 4. Verificar stock
+      // ============================
+      for (const p of carrito) {
+        const [rows] = await connection.query(
+          "SELECT cantidad, nombre FROM producto WHERE id_pan = ?",
+          [p.id_pan]
+        );
+
+        if (!rows.length)
+          throw new Error(`Producto ${p.nombre} no encontrado.`);
+
+        if (rows[0].cantidad < p.cantidad)
+          throw new Error(
+            `Stock insuficiente de ${rows[0].nombre}. Disponible: ${rows[0].cantidad}`
+          );
+      }
+
+      // ============================
+      // 5. Registrar venta
+      // ============================
+      const [ventaResult] = await connection.query(
+        "INSERT INTO ventas (id_usuario, fecha, total) VALUES (?, NOW(), ?)",
+        [req.session.userId, total]
       );
+
+      const idVenta = ventaResult.insertId;
+
+      // ============================
+      // 6. Registrar cada detalle + bajar stock
+      // ============================
+      for (const p of carrito) {
+        const subtotal = p.precio * p.cantidad;
+
+        await connection.query(
+          "INSERT INTO detalle_ventas (id_venta, id_pan, cantidad, subtotal, precio) VALUES (?, ?, ?, ?, ?)",
+          [idVenta, p.id_pan, p.cantidad, subtotal, p.precio]
+        );
+
+        await connection.query(
+          "UPDATE producto SET cantidad = cantidad - ? WHERE id_pan = ?",
+          [p.cantidad, p.id_pan]
+        );
+      }
+
+      // ============================
+      // 7. Descontar dinero de la cartera
+      // ============================
+      await connection.query(
+        "UPDATE cartera SET dinero = dinero - ? WHERE id_usuario = ?",
+        [total, req.session.userId]
+      );
+
+      await connection.commit();
+
+      res.json({ mensaje: "Compra realizada con éxito", idVenta });
+
+    } catch (error) {
+      await connection.rollback();
+      console.error("Error durante compra:", error.message);
+      res.status(400).json({ mensaje: error.message });
+    } finally {
+      connection.release();
     }
-
-    await connection.commit();
-    res.json({ mensaje: "Compra realizada con éxito", idVenta });
-
-  } catch (error) {
-    await connection.rollback();
-    console.error("Error durante compra:", error.message);
-    res.status(400).json({ mensaje: error.message });
-  } finally {
-    // ⚠️ IMPORTANTE: Liberar la conexión de vuelta al pool
-    connection.release();
   }
-});
+);
+
 
 function formatearFecha(fechaISO) {
   const fecha = new Date(fechaISO);
