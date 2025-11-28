@@ -5,6 +5,9 @@ const multer = require("multer");
 const upload = multer();
 const numeroRegex = /\d/;
 const app = express();
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
 
 app.use(express.static("public"));
 
@@ -919,6 +922,69 @@ app.post("/api/cartera/agregar", async (req, res) => {
   res.json(cartera[0]);
 });
 
+// Generar Ticket
+app.get("/ticket/:idVenta", requireAuth, async (req, res) => {
+    const idVenta = req.params.idVenta;
+    const userId = req.session.userId;
+
+    try {
+        // Obtener información de la venta
+        const [ventaRows] = await con.query(`
+            SELECT id_venta, fecha, total 
+            FROM ventas
+            WHERE id_venta = ? AND id_usuario = ?
+        `, [idVenta, userId]);
+
+        if (ventaRows.length === 0) {
+            return res.status(404).json({ error: "Venta no encontrada" });
+        }
+
+        const venta = ventaRows[0];
+
+        // Obtener detalles
+        const [detalles] = await con.query(`
+            SELECT dv.cantidad, dv.precio, dv.subtotal, p.nombre 
+            FROM detalle_ventas dv
+            JOIN producto p ON dv.id_pan = p.id_pan
+            WHERE dv.id_venta = ?
+        `, [idVenta]);
+
+        // Crear PDF
+        const doc = new PDFDocument();
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename=ticket_${idVenta}.pdf`);
+
+        doc.pipe(res);
+
+        // Encabezado
+        doc.fontSize(20).text("PANADERÍA DES-ESPERANZA", { align: "center" });
+        doc.moveDown();
+        
+        doc.fontSize(12).text(`Ticket de Compra #${idVenta}`);
+        doc.text(`Fecha: ${venta.fecha}`);
+        doc.text(`Cliente ID: ${userId}`);
+        doc.moveDown();
+
+        doc.text("Productos comprados:");
+        doc.moveDown();
+
+        // Productos
+        detalles.forEach(item => {
+            doc.text(
+                `${item.nombre}  x${item.cantidad}  -  $${item.precio}  =  $${item.subtotal}`
+            );
+        });
+
+        doc.moveDown();
+        doc.fontSize(14).text(`TOTAL PAGADO: $${venta.total}`, { align: "right" });
+
+        doc.end();
+
+    } catch (err) {
+        console.error("Error generando ticket:", err);
+        res.status(500).json({ error: "Error generando ticket" });
+    }
+});
 
 const port = process.env.PORT || 10000;
 app.listen(port, () => {

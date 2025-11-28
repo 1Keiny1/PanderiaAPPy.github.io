@@ -338,17 +338,24 @@ document.getElementById("modalHistorial").addEventListener("show.bs.modal", asyn
                 `;
             });
 
-            item.innerHTML = `
-                <div class="fw-bold">Venta #${venta.id_venta}</div>
-                <div class="text-muted">${venta.fecha}</div>
-                <hr>
-                ${productosHTML}
-                <hr>
-                <div class="d-flex justify-content-between fw-bold">
-                    <span>Total:</span>
-                    <span>$${venta.total}</span>
-                </div>
-            `;
+          item.innerHTML = `
+              <div class="fw-bold">Venta #${venta.id_venta}</div>
+              <div class="text-muted">${venta.fecha}</div>
+              <hr>
+              ${productosHTML}
+              <hr>
+              <div class="d-flex justify-content-between fw-bold">
+                  <span>Total:</span>
+                  <span>$${venta.total}</span>
+              </div>
+
+              <div class="text-end mt-2">
+                  <button class="btn btn-sm btn-outline-primary"
+                          onclick="descargarTicket(${venta.id_venta})">
+                      Descargar Ticket PDF
+                  </button>
+              </div>
+          `;
 
             contenedor.appendChild(item);
         });
@@ -409,3 +416,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+function descargarTicket(idVenta) {
+    fetch(`/ticket/${idVenta}`, {
+        method: "GET",
+        credentials: "include" // para enviar la sesión
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("No se pudo generar el ticket");
+        }
+        return res.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ticket_${idVenta}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    })
+    .catch(err => {
+        alert("Error al descargar ticket: " + err.message);
+    });
+}
