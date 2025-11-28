@@ -299,5 +299,31 @@
     }
   });
 </script>
+<script>
+async function checkSession() {
+    try {
+        const res = await fetch("/checkSession");
+        const data = await res.json();
+
+        console.log("CheckSession:", data);
+
+        if (data.loggedIn) {
+            // Redirigir según rol guardado
+            if (data.rol === 1) {
+                window.location.href = "inventario.html"; // Admin
+            } else if (data.rol === 3) {
+                window.location.href = "compras.html"; // Cliente
+            }
+        }
+        // Si loggedIn es false, no hace nada y ve el login
+
+    } catch (err) {
+        console.error("Error checando sesión:", err);
+    }
+}
+
+checkSession();
+</script>
+
 </body>
 </html>

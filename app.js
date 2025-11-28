@@ -58,7 +58,7 @@ const sessionStore = new MySQLStore({
   expiration: 86400000, // 1 día
 }, pool);
 
-app.set("trust proxy", 1); // 👈 NECESARIO en Render para cookies seguras
+app.set("trust proxy", 1);
 
 app.use(session({
   key: "sid",
@@ -136,11 +136,40 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: "No autorizado" });
 }
 
+// Revisar si la sesión sigue activa
+app.get("/checkSession", async (req, res) => {
+    // No hay sesión en cookie → no está logeado
+    if (!req.session.userId) {
+        return res.json({ loggedIn: false });
+    }
 
+    try {
+        // Verificar en DB por si el usuario cerró sesión desde otra parte
+        const [rows] = await con.query(
+            "SELECT id, nombre, id_rol, sesion_activa FROM usuarios WHERE id = ?",
+            [req.session.userId]
+        );
+
+        if (rows.length === 0 || !rows[0].sesion_activa) {
+            return res.json({ loggedIn: false });
+        }
+
+        // Todo bien → sesión válida
+        res.json({
+            loggedIn: true,
+            id: rows[0].id,
+            nombre: rows[0].nombre,
+            rol: rows[0].id_rol
+        });
+
+    } catch (err) {
+        console.error("Error en checkSession:", err);
+        res.status(500).json({ loggedIn: false });
+    }
+});
 
 
 // Sesiones Iniciar Sesion
-
 app.post("/login", async (req, res) => {
     const { correo, contrasena } = req.body;
 
@@ -149,18 +178,18 @@ app.post("/login", async (req, res) => {
     }
 
     try {
-        // --- Intentar reconectar si es necesario ---
+        // Intentar reconectar
         try {
-            await con.query('SELECT 1'); // simple ping
+            await con.query("SELECT 1");
         } catch (err) {
             console.log("DB caída o lenta, reintentando conexión...");
-            await connectWithRetry(3, 2000); // reintento 3 veces, 2s cada uno
+            await connectWithRetry(3, 2000);
         }
 
-        // --- Buscar usuario ---
+        // Buscar usuario
         const [usuarios] = await con.query({
             sql: "SELECT * FROM usuarios WHERE correo = ? AND contraseña = ?",
-            timeout: 5000, // 5 segundos máximo
+            timeout: 5000,
             values: [correo, contrasena]
         });
 
@@ -170,29 +199,26 @@ app.post("/login", async (req, res) => {
 
         const usuario = usuarios[0];
 
-        // --- Verificar si ya tiene sesión activa ---
-        if (usuario.sesion_activa) {
+        if (usuario.sesion_activa && req.session.userId !== usuario.id) {
             return res.status(403).json({ error: "Ya tienes una sesión iniciada en otro dispositivo." });
         }
 
-        // --- Guardar sesión primero ---
+        // Guardar sesión
         req.session.userId = usuario.id;
         req.session.username = usuario.nombre;
         req.session.rol = usuario.id_rol;
 
-        // --- Marcar sesión activa en DB ---
-        try {
-            await con.query({
-                sql: "UPDATE usuarios SET sesion_activa = TRUE WHERE id = ?",
-                timeout: 5000,
-                values: [usuario.id]
-            });
-        } catch (err) {
-            console.error("Error al marcar sesión activa:", err);
-            // No bloquea el login, pero avisamos al usuario
-        }
+        // Marcar en DB como sesión activa (solo si antes no lo estaba)
+        await con.query({
+            sql: "UPDATE usuarios SET sesion_activa = TRUE WHERE id = ?",
+            timeout: 5000,
+            values: [usuario.id]
+        });
 
-        res.json({ mensaje: "Has iniciado sesión correctamente.", rol: usuario.id_rol });
+        res.json({
+            mensaje: "Has iniciado sesión correctamente.",
+            rol: usuario.id_rol
+        });
 
     } catch (err) {
         console.error("Error en login:", err);
