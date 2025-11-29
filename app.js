@@ -566,6 +566,7 @@ app.get("/productos-temporada-activa", async (req, res) => {
             FROM producto p
             LEFT JOIN temporada t ON p.id_temporada = t.id_temporada
             WHERE t.activo = TRUE
+              AND p.cantidad > 0
         `;
         const [result] = await con.query(sql);
         res.json(result);
@@ -584,6 +585,7 @@ app.get("/productos-todo-el-anio", async (req, res) => {
                    p.cantidad
             FROM producto p
             WHERE p.id_temporada = 1
+              AND p.cantidad > 0
         `;
         const [result] = await con.query(sql);
         res.json(result);
