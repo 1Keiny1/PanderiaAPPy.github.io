@@ -1,4 +1,4 @@
-// clientes.js - Lógica Frontend mejorada para clientes
+// clientes.js - Lógica del fronted para clientes
 
 // --- VARIABLES GLOBALES ---
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -51,7 +51,7 @@ function renderCarrito() {
     lista.appendChild(item);
   });
 
-  // --- TOTAL DE COMPRA ---
+  // TOTAL DE COMPRA
   const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
 
   const totalDiv = document.createElement("div");
@@ -176,7 +176,7 @@ function configurarCompra() {
           return alert(data.mensaje || "Error en la compra");
         }
 
-        // === CORRECCIÓN IMPORTANTE ===
+        // CORRECCIÓN IMPORTANTE
         const idVenta = data.idVenta;
 
         if (!idVenta) {
@@ -223,7 +223,7 @@ function configurarLogout() {
   }
 }
 
-// --- CARGA DE PRODUCTOS ---
+// Cargar productos
 async function cargarProductosCliente() {
   try {
     const contTemp = document.getElementById("productos-temporada");
@@ -245,7 +245,7 @@ async function cargarProductosCliente() {
   }
 }
 
-// --- RENDER DE PRODUCTOS ---
+// Mostrar producto
 function mostrarProductos(lista, contenedor) {
   if (!contenedor) return;
   contenedor.innerHTML = "";
@@ -304,7 +304,7 @@ function mostrarProductos(lista, contenedor) {
   });
 }
 
-// --- FILTRADO ---
+// Filtrar
 function filtrarProductos(termino) {
   termino = termino.toLowerCase();
   const contenedores = ["productos-temporada", "productos-anuales"];
@@ -386,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para obtener saldo del usuario
   async function obtenerSaldo() {
     try {
-      const res = await fetch("/api/cartera"); // Endpoint que devuelve { dinero: 0.00 }
+      const res = await fetch("/api/cartera");
       const data = await res.json();
       saldoActualDiv.textContent = `$${Number(data.dinero).toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
     } catch (err) {
@@ -432,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function descargarTicket(idVenta) {
     fetch(`/ticket/${idVenta}`, {
         method: "GET",
-        credentials: "include" // para enviar la sesión
+        credentials: "include"
     })
     .then(res => {
         if (!res.ok) {
@@ -459,7 +459,7 @@ async function cargarFotoNavbar() {
     const res = await fetch("/perfil");
     if (!res.ok) return; 
 
-    // PONE LA FOTO O LA DEFAULT AUTOMÁTICAMENTE
+    // Foto de perfil
     const fotoUrl = "/perfil/foto?ts=" + new Date().getTime();
 
     const navImg = document.getElementById("navProfileImg");

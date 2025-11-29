@@ -1,4 +1,4 @@
-require("dotenv").config(); // Al inicio del archivo
+require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2");
 const multer = require("multer");
@@ -15,7 +15,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
-// --- Conexión MySQL usando .env ---
+// Conexión MySQL
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -57,8 +57,8 @@ const sessionStore = new MySQLStore({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   clearExpired: true,
-  checkExpirationInterval: 900000, // cada 15 min limpia sesiones viejas
-  expiration: 86400000, // 1 día
+  checkExpirationInterval: 900000,
+  expiration: 86400000,
 }, pool);
 
 app.set("trust proxy", 1);
@@ -70,10 +70,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24, // 1 día
+    maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production" // solo HTTPS en Render
+    secure: process.env.NODE_ENV === "production"
   }
 }));
 
@@ -117,7 +117,7 @@ function Sinnumeros(req, res, next) {
             </html>
         `);
     }
-    req.nombreLimpio = nombre; // lo guardamos para usarlo en la query
+    req.nombreLimpio = nombre;
     next();
 }
 
@@ -141,7 +141,7 @@ function requireAuth(req, res, next) {
 
 // Revisar si la sesión sigue activa
 app.get("/checkSession", async (req, res) => {
-    // No hay sesión en cookie → no está logeado
+    // No hay sesión en cookie
     if (!req.session.userId) {
         return res.json({ loggedIn: false });
     }
@@ -157,7 +157,7 @@ app.get("/checkSession", async (req, res) => {
             return res.json({ loggedIn: false });
         }
 
-        // Todo bien → sesión válida
+        // Sesión válida
         res.json({
             loggedIn: true,
             id: rows[0].id,
@@ -264,7 +264,7 @@ app.post("/registrar", async (req, res) => {
             [nombre, correo, contrasena, rol]
         );
 
-    // Crear cartera para usuarios que no tengan (incluye este nuevo)
+    // Crear cartera para usuarios que no tengan
     await con.query(`
         INSERT INTO cartera (id_usuario, dinero)
         SELECT u.id, 0
@@ -302,9 +302,7 @@ app.post("/logout", async (req, res) => {
 });
 
 // Perfil de usuario
-
 // Mostrar perfil
-
 app.get("/perfil", requireAuth, async (req, res) => {
     try {
         const [result] = await con.query(
@@ -391,7 +389,7 @@ app.post("/editar-perfil", requireAuth, upload.single("foto"), async (req, res) 
     }
 });
 
-// Inventario -Administrador-
+// Inventario
 
 // Crear producto
 app.post("/agregarProducto", requireAuth, requireRole(1), upload.single("imagen"), async (req, res) => {
@@ -428,9 +426,6 @@ app.post("/agregarProducto", requireAuth, requireRole(1), upload.single("imagen"
         res.status(500).json({ error: "Error al agregar producto." });
     }
 });
-
-//fun consultar
-
 
 // Leer productos
 app.get("/obtenerProducto", async (req, res) => {
@@ -561,7 +556,6 @@ app.post("/temporada/desactivar", requireRole(1), async (req, res) => {
 // Acciones -Cliente-
 
 // Mostrar productos por temporada
-// Productos de temporada activa
 app.get("/productos-temporada-activa", async (req, res) => {
     try {
         const sql = `
@@ -612,7 +606,6 @@ app.get("/temporada/activa", async (req, res) => {
 });
 
 // Obtener todas las temporadas
-
 app.get("/obtenerTemporadas", async (req, res) => {
     try {
         const [rows] = await con.query("SELECT * FROM temporada");
@@ -624,8 +617,6 @@ app.get("/obtenerTemporadas", async (req, res) => {
 });
 
 // Procesar compra del carrito
-// Agrega este middleware ANTES de la ruta /comprar para ver qué está pasando
-
 app.post("/comprar",
   (req, res, next) => {
     console.log("=== DEBUG COMPRA ===");
@@ -651,14 +642,10 @@ app.post("/comprar",
     try {
       await connection.beginTransaction();
 
-      // ============================
-      // 1. Calcular total de compra
-      // ============================
+      // Calcular total de compra
       const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
 
-      // ============================
-      // 2. Obtener saldo de cartera
-      // ============================
+      // Obtener saldo de cartera
       const [carteraRows] = await connection.query(
         "SELECT dinero FROM cartera WHERE id_usuario = ? FOR UPDATE",
         [req.session.userId]
@@ -670,18 +657,14 @@ app.post("/comprar",
 
       const saldoActual = parseFloat(carteraRows[0].dinero);
 
-      // ============================
       // 3. Validar si alcanza
-      // ============================
       if (saldoActual < total) {
         throw new Error(
           `Saldo insuficiente. Te faltan $${(total - saldoActual).toFixed(2)}`
         );
       }
 
-      // ============================
       // 4. Verificar stock
-      // ============================
       for (const p of carrito) {
         const [rows] = await connection.query(
           "SELECT cantidad, nombre FROM producto WHERE id_pan = ?",
@@ -697,9 +680,7 @@ app.post("/comprar",
           );
       }
 
-      // ============================
-      // 5. Registrar venta
-      // ============================
+      // Registrar venta
       const [ventaResult] = await connection.query(
         "INSERT INTO ventas (id_usuario, fecha, total) VALUES (?, NOW(), ?)",
         [req.session.userId, total]
@@ -707,9 +688,7 @@ app.post("/comprar",
 
       const idVenta = ventaResult.insertId;
 
-      // ============================
-      // 6. Registrar cada detalle + bajar stock
-      // ============================
+      // Registrar cada detalle
       for (const p of carrito) {
         const subtotal = p.precio * p.cantidad;
 
@@ -724,9 +703,7 @@ app.post("/comprar",
         );
       }
 
-      // ============================
-      // 7. Descontar dinero de la cartera
-      // ============================
+      // Descontar dinero de la cartera
       await connection.query(
         "UPDATE cartera SET dinero = dinero - ? WHERE id_usuario = ?",
         [total, req.session.userId]
