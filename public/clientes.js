@@ -453,3 +453,25 @@ function descargarTicket(idVenta) {
         alert("Error al descargar ticket: " + err.message);
     });
 }
+
+async function cargarFotoNavbar() {
+  try {
+    const res = await fetch("/perfil/foto", { cache: "no-store" });
+
+    const navImg = document.getElementById("navProfilePic");
+
+    if (res.ok) {
+      // Imagen del usuario
+      navImg.src = "/perfil/foto?ts=" + new Date().getTime();
+    } else {
+      // Si no tiene foto → usar por defecto
+      navImg.src = "img/default.jpg";
+    }
+
+  } catch (err) {
+    console.error("Error cargando foto de navbar:", err);
+    document.getElementById("navProfilePic").src = "img/default.jpg";
+  }
+}
+
+cargarFotoNavbar();
