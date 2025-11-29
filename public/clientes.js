@@ -456,22 +456,19 @@ function descargarTicket(idVenta) {
 
 async function cargarFotoNavbar() {
   try {
-    const res = await fetch("/perfil/foto", { cache: "no-store" });
+    const res = await fetch("/perfil");
+    if (!res.ok) return; 
 
-    const navImg = document.getElementById("navProfilePic");
+    // PONE LA FOTO O LA DEFAULT AUTOMÁTICAMENTE
+    const fotoUrl = "/perfil/foto?ts=" + new Date().getTime();
 
-    if (res.ok) {
-      // Imagen del usuario
-      navImg.src = "/perfil/foto?ts=" + new Date().getTime();
-    } else {
-      // Si no tiene foto → usar por defecto
-      navImg.src = "img/default.jpg";
-    }
+    const navImg = document.getElementById("navProfileImg");
+    if (navImg) navImg.src = fotoUrl;
 
   } catch (err) {
-    console.error("Error cargando foto de navbar:", err);
-    document.getElementById("navProfilePic").src = "img/default.jpg";
+    console.error("Error cargando foto navbar:", err);
   }
 }
 
+// Llamar al cargar la página
 cargarFotoNavbar();
