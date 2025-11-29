@@ -303,3 +303,23 @@ function mostrarTablaHistorialAdmin(registros) {
         `;
     });
 }
+
+// Foto nabvar
+async function cargarFotoNavbar() {
+  try {
+    const res = await fetch("/perfil");
+    if (!res.ok) return; 
+
+    // Foto de perfil
+    const fotoUrl = "/perfil/foto?ts=" + new Date().getTime();
+
+    const navImg = document.getElementById("navProfileImg");
+    if (navImg) navImg.src = fotoUrl;
+
+  } catch (err) {
+    console.error("Error cargando foto navbar:", err);
+  }
+}
+
+// Llamar al cargar la página
+cargarFotoNavbar();
