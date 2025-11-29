@@ -4,6 +4,21 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarProductos();
+
+  const inputBusqueda = document.getElementById("busquedaProducto");
+  if (inputBusqueda) {
+    inputBusqueda.addEventListener("input", () => {
+      const texto = inputBusqueda.value.toLowerCase();
+
+      const filtrados = listaProductos.filter(p =>
+        p.nombre.toLowerCase().includes(texto) ||
+        (p.descripcion && p.descripcion.toLowerCase().includes(texto)) ||
+        p.nom_temporada?.toLowerCase().includes(texto)
+      );
+
+      renderizarProductos(filtrados);
+    });
+  }
   
   const btnTemporada = document.getElementById("btnActivarTemporada");
   if(btnTemporada) {
@@ -57,38 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', guardarProducto);
   });
   
-  function cargarProductos() {
-    fetch('/obtenerProducto', { credentials: "include" })
-      .then(res => res.json())
-      .then(productos => {
-        const tbody = document.querySelector('#tablaProductos tbody');
-        tbody.innerHTML = '';
-        productos.forEach((prod, idx) => {
-          const imgSrc = prod.imagen ? `/imagen/${prod.id_pan}` : 'https://cdn-icons-png.flaticon.com/128/3014/3014502.png';
-          tbody.innerHTML += `
-            <tr>
-              <td>${idx + 1}</td>
-              <td><img src="${imgSrc}" alt="pan" class="img-thumbnail" style="width:120px;height:120px;object-fit:cover;"></td>
-              <td>${prod.nombre}</td>
-              <td>$${Number(prod.precio).toFixed(2)}</td>
-              <td>${prod.cantidad}</td>
-              <td>${prod.nom_temporada ? prod.nom_temporada : 'Todo el año'}</td>
-              <td>${prod.descripcion || ''}</td>
-              <td>
-                <button class="btn btn-sm btn-warning me-1 btn-editar" data-prod='${JSON.stringify(prod).replace(/'/g, "&#39;")}' type="button">Editar</button>
-                <button class="btn btn-sm btn-danger" onclick="borrarProducto(${prod.id_pan})">Borrar</button>
-              </td>
-            </tr>
-          `;
-        });
-        // Asignar eventos a los botones editar
-        document.querySelectorAll('.btn-editar').forEach(btn => {
-          btn.addEventListener('click', function() {
-            editarProducto(this.getAttribute('data-prod'));
-          });
-        });
-      });
-  }
+  let listaProductos = [];
+function cargarProductos() {
+  fetch('/obtenerProducto', { credentials: "include" })
+    .then(res => res.json())
+    .then(productos => {
+      listaProductos = productos;     // Guardamos la lista original
+      renderizarProductos(productos); // Renderizamos la tabla correctamente
+    });
+}
+
   
 function guardarProducto(e) {
   console.log("Ejecutando guardarProducto...", e);
@@ -323,3 +316,36 @@ async function cargarFotoNavbar() {
 
 // Llamar al cargar la página
 cargarFotoNavbar();
+
+function renderizarProductos(productos) {
+  const tbody = document.querySelector('#tablaProductos tbody');
+  tbody.innerHTML = '';
+
+  productos.forEach((prod, idx) => {
+    const imgSrc = prod.imagen ? `/imagen/${prod.id_pan}` : 'https://cdn-icons-png.flaticon.com/128/3014/3014502.png';
+    tbody.innerHTML += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td><img src="${imgSrc}" alt="pan" class="img-thumbnail"
+                 style="width:120px;height:120px;object-fit:cover;"></td>
+        <td>${prod.nombre}</td>
+        <td>$${Number(prod.precio).toFixed(2)}</td>
+        <td>${prod.cantidad}</td>
+        <td>${prod.nom_temporada ? prod.nom_temporada : 'Todo el año'}</td>
+        <td>${prod.descripcion || ''}</td>
+        <td>
+          <button class="btn btn-sm btn-warning me-1 btn-editar"
+                  data-prod='${JSON.stringify(prod).replace(/'/g, "&#39;")}' 
+                  type="button">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="borrarProducto(${prod.id_pan})">Borrar</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.querySelectorAll('.btn-editar').forEach(btn => {
+    btn.addEventListener('click', function() {
+      editarProducto(this.getAttribute('data-prod'));
+    });
+  });
+}
