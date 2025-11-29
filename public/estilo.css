@@ -1,15 +1,15 @@
-/* Paleta Día de Muertos */
+/* Paleta Navidad */
 :root {
-  --color-primario: #471754;
-  --color-titulos: #ffa4f0;  
-  --color-secundario: #991D5D;
-  --color-acento: #ff6f31;
-  --color-fondo: #f5f5f5;
-  --color-texto: #2e2e2e;
-  --color-blanco: #fff;
-  --color-dorado: #ffc300;
+  --color-primario: #8C1F28;
+  --color-secundario: #be3e49;
+  --color-acento: #E6B33C;
+  --color-fondo: #F7F3EF;
+  --color-texto: #2E2E2E;
+  --color-blanco: #FFFFFF;
+  --color-dorado: #E6B33C;        
 }
 
+/* Body y tipografía */
 body {
   background-color: var(--color-fondo);
   color: var(--color-texto);
@@ -18,6 +18,7 @@ body {
   padding: 0;
 }
 
+/* Navbar */
 .navbar {
   background: linear-gradient(160deg, var(--color-primario), var(--color-secundario));
 }
@@ -30,6 +31,7 @@ body {
   overflow: visible; 
 }
 
+/* Footer */
 footer {
   position: relative;
   bottom: 0;
@@ -41,6 +43,7 @@ footer {
   padding: 1rem 0;
 }
 
+/* Formularios */
 .auth-container {
   max-width: 400px;
   margin: 60px auto;
@@ -56,6 +59,7 @@ footer {
   font-weight: bold;
 }
 
+/* Botones */
 .btn-primary {
   background-color: var(--color-primario);
   color: var(--color-blanco);
@@ -81,6 +85,7 @@ footer {
   color: var(--color-blanco);
 }
 
+/* Tablas */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -107,13 +112,8 @@ thead.thead-muertos {
 }
 
 /* Encabezados */
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
   color: var(--color-primario);
-  margin: 0.5rem 0;
-}
-
-h5 {
-  color: var(--color-blanco);
   margin: 0.5rem 0;
 }
 
@@ -123,7 +123,7 @@ h5 {
 }
 
 .card-precio {
-  color: #800080;
+  color: #800080; /* morado */
   font-weight: bold;
   font-size: 1.1rem;
 }

@@ -957,7 +957,7 @@ app.get("/ticket/:idVenta", requireAuth, async (req, res) => {
         doc.pipe(res);
 
         // Encabezado
-        doc.fontSize(20).text("PANADERÍA DES-ESPERANZA", { align: "center" });
+        doc.fontSize(20).text("PANADERÍA LA DESESPERANZA", { align: "center" });
         doc.moveDown();
         
         doc.fontSize(12).text(`Ticket de Compra #${idVenta}`);
