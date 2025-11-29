@@ -142,55 +142,67 @@ function configurarCarritoVacio() {
 function configurarCompra() {
   const procederCompraBtn = document.getElementById("procederCompra");
   if (procederCompraBtn) {
-  procederCompraBtn.addEventListener("click", async () => {
-    if (!carrito.length) return alert("Tu carrito está vacío.");
+    procederCompraBtn.addEventListener("click", async () => {
 
-    // Calcular total del carrito
-    const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+      if (!carrito.length) return alert("Tu carrito está vacío.");
 
-    // Obtener saldo del usuario antes de comprar
-    let saldoActual = 0;
-    try {
+      const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+
+      let saldoActual = 0;
+      try {
         const resSaldo = await fetch("/api/cartera");
         const dataSaldo = await resSaldo.json();
         saldoActual = Number(dataSaldo.dinero);
-    } catch (err) {
+      } catch (err) {
         console.error(err);
         return alert("Error al verificar saldo");
-    }
+      }
 
-    // Verificar si alcanza el saldo
-    if (saldoActual < total) {
+      if (saldoActual < total) {
         return alert(`Saldo insuficiente \nNecesitas: $${total.toFixed(2)}\nTienes: $${saldoActual.toFixed(2)}`);
-    }
+      }
 
-    console.log("=== INICIANDO COMPRA ===");
-
-    try {
+      try {
         const res = await fetch("/comprar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ carrito }),
-            credentials: "include"
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ carrito }),
+          credentials: "include"
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            return alert(data.error || "Error en la compra");
+          return alert(data.mensaje || "Error en la compra");
         }
 
-        alert(`Compra realizada con éxito \nSe descontó: $${total.toFixed(2)}`);
+        // === CORRECCIÓN IMPORTANTE ===
+        const idVenta = data.idVenta;
+
+        if (!idVenta) {
+          console.error("No se recibió idVenta del backend:", data);
+          return alert("Error: No se generó el ticket.");
+        }
+
+        // Mostrar modal
+        const modalTicket = new bootstrap.Modal(document.getElementById("modalTicket"));
+
+        document.getElementById("btnDescargarTicket").onclick = () => {
+          descargarTicket(idVenta);
+        };
+
+        modalTicket.show();
 
         carrito = [];
         guardarCarrito();
         renderCarrito();
 
-    } catch (err) {
-        console.error("Error completo:", err);
+      } catch (err) {
+        console.error(err);
         alert(`Error al procesar la compra: ${err.message}`);
-    }
-  });
+      }
+
+    });
   }
 }
 
