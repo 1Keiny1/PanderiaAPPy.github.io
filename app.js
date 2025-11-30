@@ -8,6 +8,7 @@ const app = express();
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
+const Validar = require("./validacion");
 
 app.use(express.static("public"));
 
@@ -176,6 +177,22 @@ app.get("/checkSession", async (req, res) => {
 app.post("/login", async (req, res) => {
     const { correo, contrasena } = req.body;
 
+        try {
+        if (!correo || typeof correo !== "string")
+            throw new Error("Correo inválido.");
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
+            throw new Error("Formato de correo incorrecto.");
+
+        if (!contrasena || typeof contrasena !== "string")
+            throw new Error("Contraseña inválida.");
+        
+        if (contrasena.length < 3)
+            throw new Error("Contraseña demasiado corta.");
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
+    }
+
     if (!correo || !contrasena) {
         return res.status(400).json({ error: "Correo y contraseña son obligatorios." });
     }
@@ -241,8 +258,10 @@ app.post("/registrar", async (req, res) => {
     correo = correo ? correo.replace(removeTagsRegex, "").trim() : "";
     contrasena = contrasena ? contrasena.trim() : "";
 
-    if (!nombre || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
-        return res.status(400).json({ error: "Nombre inválido: Solo letras y espacios" });
+    try {
+        Validar.nombre(nombre);
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
     }
 
     if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
@@ -451,6 +470,20 @@ app.post("/actualizarProducto", requireAuth, requireRole(1), upload.single("imag
 
         nombre = removeTags(nombre);
         descripcion = removeTags(descripcion);
+
+        if (!id_pan) {
+            return res.status(400).json({ error: "El ID del producto es obligatorio." });
+        }
+
+        try {
+            Validar.nombre(nombre);
+            Validar.precio(precio);
+            Validar.cantidad(cantidad);
+            Validar.descripcion(descripcion);
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
 
         if (!id_pan || !nombre || !precio || !cantidad) {
             return res.status(400).json({ error: "ID, nombre, precio y cantidad son obligatorios." });
