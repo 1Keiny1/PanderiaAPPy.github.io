@@ -435,6 +435,8 @@ app.post("/agregarProducto", requireAuth, requireRole(1), upload.single("imagen"
         Validar.descripcion(descripcion);
         Validar.precio(precio);
         Validar.cantidad(cantidad);
+        Validar.maxNumber(precio, 999999999);
+        Validar.maxNumber(cantidad, 999999);
         Validar.id(temporada);
 
     } catch (error) {
@@ -940,6 +942,7 @@ app.post("/api/cartera/agregar", async (req, res) => {
   const userId = req.session.userId;
   const { cantidad } = req.body;
   Validar.cantidad(cantidad);
+  Validar.maxNumber(cantidad, 999999999999);
   
   if (cantidad <= 0) return res.json({ error: "La cantidad debe ser mayor a 0" });
 
