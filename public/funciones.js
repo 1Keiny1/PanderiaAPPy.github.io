@@ -349,3 +349,54 @@ function renderizarProductos(productos) {
     });
   });
 }
+
+let chartProductos = null;
+let chartTemporadas = null;
+
+function abrirGraficas() {
+    // Asegurar que estén los datos cargados
+    if (!listaProductos || listaProductos.length === 0) return;
+
+    // Gráfica de Cantidades por Producto
+    const nombres = listaProductos.map(p => p.nombre);
+    const cantidades = listaProductos.map(p => p.cantidad);
+
+    const ctx1 = document.getElementById("graficaProductos").getContext("2d");
+    if (chartProductos) chartProductos.destroy();
+    chartProductos = new Chart(ctx1, {
+        type: "bar",
+        data: {
+            labels: nombres,
+            datasets: [{
+                label: "Cantidad en almacén",
+                data: cantidades,
+                borderWidth: 1
+            }]
+        }
+    });
+
+    // Gráfica por Temporadas
+    const conteoTemp = {};
+
+    listaProductos.forEach(p => {
+        if (!conteoTemp[p.nom_temporada]) conteoTemp[p.nom_temporada] = 0;
+        conteoTemp[p.nom_temporada]++;
+    });
+
+    const temporadas = Object.keys(conteoTemp);
+    const valoresTemp = Object.values(conteoTemp);
+
+    const ctx2 = document.getElementById("graficaTemporadas").getContext("2d");
+    if (chartTemporadas) chartTemporadas.destroy();
+    chartTemporadas = new Chart(ctx2, {
+        type: "pie",
+        data: {
+            labels: temporadas,
+            datasets: [{
+                label: "Productos por temporada",
+                data: valoresTemp,
+                borderWidth: 1
+            }]
+        }
+    });
+}
