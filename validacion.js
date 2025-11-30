@@ -59,6 +59,10 @@ class Validar {
         if (cantidad > 100000)
             throw new Error("Cantidad demasiado grande.");
     }
+
+    static id(valor) {
+        if (!valor || isNaN(valor)) throw new Error("ID inválido");
+    }
 }
 
 module.exports = Validar;

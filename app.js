@@ -371,13 +371,24 @@ app.post("/editar-perfil", requireAuth, upload.single("foto"), async (req, res) 
     try {
         let { nombre, contrasena } = req.body;
 
-        if (!nombre) return res.status(400).json({ error: "Nombre es obligatorio" });
-
-        // Sanitizar nombre
-        nombre = removeTags(nombre).trim();
-        if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre)) {
-            return res.status(400).json({ error: "Nombre inválido: solo letras y espacios" });
+    try {
+        if (nombre) {
+            nombre = removeTags(nombre).trim();
+            Validar.nombre(nombre);
+        } else {
+            return res.status(400).json({ error: "El nombre es obligatorio." });
         }
+
+        if (contrasena) {
+            contrasena = contrasena.trim();
+            const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+            if (!passRegex.test(contrasena)) {
+                throw new Error("Contraseña inválida: mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 carácter especial");
+            }
+        }
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
 
         let query = "UPDATE usuarios SET nombre = ?";
         const params = [nombre];
@@ -416,19 +427,24 @@ app.post("/agregarProducto", requireAuth, requireRole(1), upload.single("imagen"
         let { nombre, descripcion, precio, cantidad, temporada } = req.body;
         const imagenBuffer = req.file ? req.file.buffer : null;
 
-        // Sanitizar entradas
+    try {
         nombre = removeTags(nombre).trim();
         descripcion = removeTags(descripcion).trim();
 
-        if (!nombre || !precio || !cantidad) {
-            return res.status(400).json({ error: "Nombre, precio y cantidad son obligatorios." });
-        }
-        if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad < 0) {
-            return res.status(400).json({ error: "Precio y cantidad deben ser valores válidos." });
-        }
-        if (!temporada || isNaN(temporada)) {
-            return res.status(400).json({ error: "Temporada inválida o no seleccionada." });
-        }
+        Validar.nombre(nombre);
+        Validar.descripcion(descripcion);
+        Validar.precio(precio);
+        Validar.cantidad(cantidad);
+        Validar.id(temporada);
+
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+
+
+        // Sanitizar entradas
+        nombre = removeTags(nombre).trim();
+        descripcion = removeTags(descripcion).trim();
 
         // Insertar producto
         const sql = `
@@ -466,6 +482,8 @@ app.get("/obtenerProducto", async (req, res) => {
 app.post("/actualizarProducto", requireAuth, requireRole(1), upload.single("imagen"), async (req, res) => {
     try {
         let { id_pan, nombre, descripcion, precio, cantidad, temporada } = req.body;
+        Validar.id(id_pan);
+        Validar.id(temporada);
         const imagenBuffer = req.file ? req.file.buffer : null;
 
         nombre = removeTags(nombre);
@@ -482,14 +500,6 @@ app.post("/actualizarProducto", requireAuth, requireRole(1), upload.single("imag
             Validar.descripcion(descripcion);
         } catch (err) {
             return res.status(400).json({ error: err.message });
-        }
-
-
-        if (!id_pan || !nombre || !precio || !cantidad) {
-            return res.status(400).json({ error: "ID, nombre, precio y cantidad son obligatorios." });
-        }
-        if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad < 0) {
-            return res.status(400).json({ error: "Precio y cantidad deben ser valores válidos." });
         }
 
         let sql, params;
@@ -518,6 +528,7 @@ app.post("/actualizarProducto", requireAuth, requireRole(1), upload.single("imag
 app.get("/imagen/:id", async (req, res) => {
     try {
         const id = req.params.id;
+        Validar.id(id);
         const [resultado] = await con.query("SELECT imagen FROM producto WHERE id_pan = ?", [id]);
 
         if (resultado.length === 0 || !resultado[0].imagen) {
@@ -539,6 +550,7 @@ app.get("/imagen/:id", async (req, res) => {
 app.post("/borrarProducto", requireAuth, requireRole(1), async (req, res) => {
     try {
         const { id_pan } = req.body;
+        Validar.id(id_pan);
 
         if (!id_pan) {
             return res.status(400).json({ error: "ID de producto es obligatorio." });
@@ -561,6 +573,7 @@ app.post("/borrarProducto", requireAuth, requireRole(1), async (req, res) => {
 app.post("/temporada/activar", requireRole(1), async (req, res) => {
     try {
         const { id_temporada } = req.body;
+        Validar.id(id_temporada);
         if (!id_temporada) return res.status(400).json({ error: "ID de temporada requerido" });
 
         // Desactivar todas
@@ -672,6 +685,11 @@ app.post("/comprar",
       return res.status(400).json({ mensaje: "Carrito vacío" });
     }
 
+    for (const p of carrito) {
+        Validar.id(p.id_pan);
+        Validar.cantidad(p.cantidad);
+    }
+
     const connection = await con.getConnection();
 
     try {
@@ -722,6 +740,7 @@ app.post("/comprar",
       );
 
       const idVenta = ventaResult.insertId;
+      Validar.id(idVenta);
 
       // Registrar cada detalle
       for (const p of carrito) {
@@ -920,6 +939,7 @@ app.get("/api/cartera", async (req, res) => {
 app.post("/api/cartera/agregar", async (req, res) => {
   const userId = req.session.userId;
   const { cantidad } = req.body;
+  Validar.cantidad(cantidad);
   
   if (cantidad <= 0) return res.json({ error: "La cantidad debe ser mayor a 0" });
 
@@ -937,6 +957,7 @@ app.post("/api/cartera/agregar", async (req, res) => {
 // Generar Ticket
 app.get("/ticket/:idVenta", requireAuth, async (req, res) => {
     const idVenta = req.params.idVenta;
+    Validar.id(idVenta);
     const userId = req.session.userId;
 
     try {
