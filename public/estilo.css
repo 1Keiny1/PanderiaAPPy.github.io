@@ -127,3 +127,20 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
   font-size: 1.1rem;
 }
+
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  font-size: 1em;
+  user-select: none;
+  pointer-events: none;
+  z-index: 999999;
+  animation: fall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes fall {
+  0% { transform: translateY(-10px); }
+  100% { transform: translateY(110vh); }
+}

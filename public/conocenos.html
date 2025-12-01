@@ -106,5 +106,22 @@
       .bindPopup('Mi Panadería')
       .openPopup();
   </script>
+  <script>
+  function crearCopo() {
+    const copo = document.createElement("div");
+    copo.classList.add("snowflake");
+    copo.innerHTML = "❄";
+
+    copo.style.left = Math.random() * 100 + "vw";
+    copo.style.fontSize = (Math.random() * 10 + 10) + "px";
+    copo.style.animationDuration = (Math.random() * 5 + 5) + "s";
+
+    document.body.appendChild(copo);
+
+    setTimeout(() => copo.remove(), 10000);
+  }
+
+  setInterval(crearCopo, 200);
+</script>
 </body>
 </html>
