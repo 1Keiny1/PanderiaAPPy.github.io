@@ -60,8 +60,27 @@ class Validar {
             throw new Error("Cantidad demasiado grande.");
     }
 
+    // ---- ID ----
     static id(valor) {
-        if (!valor || isNaN(valor)) throw new Error("ID inválido");
+        if (!valor || isNaN(valor)) 
+            throw new Error("ID inválido");
+    }
+
+    // ---- FONDOS ---- (NUEVO PARA CARTERA)
+    static fondos(fondos) {
+        if (fondos === undefined || fondos === null)
+            throw new Error("Los fondos son obligatorios.");
+
+        if (isNaN(fondos))
+            throw new Error("Los fondos deben ser numéricos.");
+
+        fondos = Number(fondos);
+
+        if (fondos < 0)
+            throw new Error("Los fondos no pueden ser negativos.");
+
+        if (fondos > 999999999999)
+            throw new Error("No puedes agregar más de 999999999999 pesos.");
     }
 }
 

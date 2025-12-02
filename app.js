@@ -939,23 +939,40 @@ app.get("/api/cartera", async (req, res) => {
 
 // Agregar fondos
 app.post("/api/cartera/agregar", async (req, res) => {
-  const userId = req.session.userId;
-  const { cantidad } = req.body;
-  Validar.cantidad(cantidad);
-  Validar.maxNumber(cantidad, 999999999999);
-  
-  if (cantidad <= 0) return res.json({ error: "La cantidad debe ser mayor a 0" });
+  try {
+    const userId = req.session.userId;
+    const { cantidad } = req.body;
 
-  // Actualizar sin pasarse del máximo
-  await con.query(`
-    UPDATE cartera
-    SET dinero = LEAST(dinero + ?, 999999999999)
-    WHERE id_usuario = ?
-  `, [cantidad, userId]);
+    // Validaciones
+    Validar.cantidad(cantidad);
+    Validar.maxNumber(cantidad, 999999999999);
 
-  const [cartera] = await con.query("SELECT dinero FROM cartera WHERE id_usuario = ?", [userId]);
-  res.json(cartera[0]);
+    const monto = Number(cantidad);
+
+    if (monto <= 0)
+      return res.json({ error: "La cantidad debe ser mayor a 0" });
+
+    // Actualizar sin pasarse del máximo
+    await con.query(`
+      UPDATE cartera
+      SET dinero = LEAST(dinero + ?, 999999999999)
+      WHERE id_usuario = ?
+    `, [monto, userId]);
+
+    // Obtener valor actualizado
+    const [cartera] = await con.query(
+      "SELECT dinero FROM cartera WHERE id_usuario = ?",
+      [userId]
+    );
+
+    return res.json(cartera[0]);
+
+  } catch (err) {
+    console.error(err);
+    return res.json({ error: err.message });
+  }
 });
+
 
 // Generar Ticket
 app.get("/ticket/:idVenta", requireAuth, async (req, res) => {
