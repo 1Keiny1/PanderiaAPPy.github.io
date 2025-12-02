@@ -1,5 +1,3 @@
-// validacion.js
-
 class Validar {
 
     // ---- NOMBRE ----
@@ -62,24 +60,43 @@ class Validar {
 
     // ---- ID ----
     static id(valor) {
-        if (!valor || isNaN(valor)) 
+        if (valor === undefined || valor === null || isNaN(valor))
             throw new Error("ID inválido");
+    }
+
+    // ---- MÁXIMO NUMÉRICO ----
+    // Uso: Validar.maxNumber(valor, maximo)
+    static maxNumber(valor, maximo) {
+        if (valor === undefined || valor === null)
+            throw new Error("El valor es obligatorio.");
+
+        if (isNaN(valor))
+            throw new Error("El valor debe ser numérico.");
+
+        const n = Number(valor);
+
+        if (n < 0)
+            throw new Error("El valor no puede ser negativo.");
+
+        if (typeof maximo === "number" && n > maximo)
+            throw new Error(`El valor no puede ser mayor a ${maximo}.`);
     }
 
     // ---- FONDOS ---- (NUEVO PARA CARTERA)
     static fondos(fondos) {
+        // Esta función es similar a maxNumber pero con mensaje específico
         if (fondos === undefined || fondos === null)
             throw new Error("Los fondos son obligatorios.");
 
         if (isNaN(fondos))
             throw new Error("Los fondos deben ser numéricos.");
 
-        fondos = Number(fondos);
+        const n = Number(fondos);
 
-        if (fondos < 0)
+        if (n < 0)
             throw new Error("Los fondos no pueden ser negativos.");
 
-        if (fondos > 999999999999)
+        if (n > 999999999999)
             throw new Error("No puedes agregar más de 999999999999 pesos.");
     }
 }
